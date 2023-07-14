@@ -26,14 +26,14 @@ tinymce.PluginManager.add('spoiler', function(editor, url) {
       onSubmit: function (api) {
         var data = api.getData();
         /* Insert content when the window form is submitted */
-        editor.insertContent('[spoiler]' + data.title + '[/spoiler]');
+        editor.insertContent('[spoiler]' + data.spoiler + '[/spoiler]');
         api.close();
       }
     });
   };
   /* Add a button that opens a window */
   editor.ui.registry.addButton('spoiler', {
-    text: 'My button',
+    text: 'Spoiler',
     onAction: function () {
       /* Open window */
       openDialog();
@@ -41,7 +41,7 @@ tinymce.PluginManager.add('spoiler', function(editor, url) {
   });
   /* Adds a menu item, which can then be included in any menu via the menu/menubar configuration */
   editor.ui.registry.addMenuItem('spoiler', {
-    text: 'Example plugin',
+    text: 'Spoiler',
     onAction: function() {
       /* Open window */
       openDialog();
@@ -51,8 +51,8 @@ tinymce.PluginManager.add('spoiler', function(editor, url) {
   return {
     getMetadata: function () {
       return  {
-        name: 'Example plugin',
-        url: 'http://exampleplugindocsurl.com'
+        name: 'Spoiler Shortcode',
+        url: 'https://github.com/The-3Labs-Team/tinymce-laravel-shortcode-plus'
       };
     }
   };
