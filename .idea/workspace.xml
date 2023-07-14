@@ -4,8 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f19ad00f-db47-45e0-be8f-883e04af915b" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+    <list default="true" id="f19ad00f-db47-45e0-be8f-883e04af915b" name="Changes" comment="Ignore node_modules">
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -51,11 +51,42 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1689343065421</updated>
-      <workItem from="1689343066670" duration="723000" />
+      <workItem from="1689343066670" duration="773000" />
     </task>
+    <task id="LOCAL-00001" summary="wip">
+      <option name="closed" value="true" />
+      <created>1689344044222</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1689344044222</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Add http server for testing in local">
+      <option name="closed" value="true" />
+      <created>1689344058480</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1689344058480</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Ignore node_modules">
+      <option name="closed" value="true" />
+      <created>1689344063967</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1689344063967</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="wip" />
+    <MESSAGE value="Add http server for testing in local" />
+    <MESSAGE value="Ignore node_modules" />
+    <option name="LAST_COMMIT_MESSAGE" value="Ignore node_modules" />
   </component>
 </project>

@@ -2,3 +2,6 @@
 Testing a Tinymce plugin using GitHub as host
 
 It will be documented as well in the future. No ETA.
+
+For start server:
+```npx http-server```
