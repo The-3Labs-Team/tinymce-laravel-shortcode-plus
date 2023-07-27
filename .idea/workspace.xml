@@ -4,16 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f19ad00f-db47-45e0-be8f-883e04af915b" name="Changes" comment="How to start server">
-      <change afterPath="$PROJECT_DIR$/src/distico.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/facebook.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/instagram.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/leggianche.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/reddit.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/twitter.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/youtube.js" afterDir="false" />
+    <list default="true" id="f19ad00f-db47-45e0-be8f-883e04af915b" name="Changes" comment="First button stack">
+      <change afterPath="$PROJECT_DIR$/src/tmdb.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spoiler.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/spoiler.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -23,7 +18,19 @@
   <component name="ComposerSettings">
     <execution />
   </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="JavaScript File" />
+      </list>
+    </option>
+  </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="main" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="MarkdownSettingsMigration">
@@ -35,22 +42,22 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.laravel-idea.search-composer-json&quot;: &quot;true&quot;,
-    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/stefanonovelli/Sites/Components/tinymce-laravel-shortcode-plus/src&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.laravel-idea.search-composer-json": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "git-widget-placeholder": "tmdb-plugin",
+    "last_opened_file_path": "/Users/stefanonovelli/Sites/Components/tinymce-laravel-shortcode-plus",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "preferences.pluginManager",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/src" />
@@ -68,7 +75,11 @@
       <option name="presentableId" value="Default" />
       <updated>1689343065421</updated>
       <workItem from="1689343066670" duration="3856000" />
-      <workItem from="1689359695216" duration="16252000" />
+      <workItem from="1689359695216" duration="17910000" />
+      <workItem from="1689598833116" duration="33000" />
+      <workItem from="1689676769536" duration="784000" />
+      <workItem from="1689690827058" duration="1111000" />
+      <workItem from="1690464304845" duration="2257000" />
     </task>
     <task id="LOCAL-00001" summary="wip">
       <option name="closed" value="true" />
@@ -102,7 +113,15 @@
       <option name="project" value="LOCAL" />
       <updated>1689344085833</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="First button stack">
+      <option name="closed" value="true" />
+      <created>1689587810126</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1689587810126</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -113,6 +132,7 @@
     <MESSAGE value="Add http server for testing in local" />
     <MESSAGE value="Ignore node_modules" />
     <MESSAGE value="How to start server" />
-    <option name="LAST_COMMIT_MESSAGE" value="How to start server" />
+    <MESSAGE value="First button stack" />
+    <option name="LAST_COMMIT_MESSAGE" value="First button stack" />
   </component>
 </project>
