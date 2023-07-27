@@ -4,11 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f19ad00f-db47-45e0-be8f-883e04af915b" name="Changes" comment="First button stack">
-      <change afterPath="$PROJECT_DIR$/src/tmdb.js" afterDir="false" />
+    <list default="true" id="87cd023b-5cd6-4da9-81ae-870dca53ae2d" name="Changes" comment="First button stack">
+      <change afterPath="$PROJECT_DIR$/src/button.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -18,121 +17,15 @@
   <component name="ComposerSettings">
     <execution />
   </component>
-  <component name="FileTemplateManagerImpl">
-    <option name="RECENT_TEMPLATES">
-      <list>
-        <option value="JavaScript File" />
-      </list>
-    </option>
-  </component>
-  <component name="Git.Settings">
-    <option name="RECENT_BRANCH_BY_REPOSITORY">
-      <map>
-        <entry key="$PROJECT_DIR$" value="main" />
-      </map>
-    </option>
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
-  </component>
-  <component name="MarkdownSettingsMigration">
-    <option name="stateVersion" value="1" />
-  </component>
-  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="PHP" />
-  <component name="ProjectId" id="2SZ97AQjGvOzPKaXyyWmG7Pg8oP" />
-  <component name="ProjectViewState">
-    <option name="hideEmptyMiddlePackages" value="true" />
-    <option name="showLibraryContents" value="true" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.laravel-idea.search-composer-json": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "git-widget-placeholder": "tmdb-plugin",
-    "last_opened_file_path": "/Users/stefanonovelli/Sites/Components/tinymce-laravel-shortcode-plus",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "preferences.pluginManager",
-    "vue.rearranger.settings.migration": "true"
+    "git-widget-placeholder": "Merging tmdb-plugin"
   }
 }]]></component>
-  <component name="RecentsManager">
-    <key name="CopyFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/src" />
-    </key>
-    <key name="MoveFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/src" />
-    </key>
-  </component>
-  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
-    <task active="true" id="Default" summary="Default task">
-      <changelist id="f19ad00f-db47-45e0-be8f-883e04af915b" name="Changes" comment="" />
-      <created>1689343065421</created>
-      <option name="number" value="Default" />
-      <option name="presentableId" value="Default" />
-      <updated>1689343065421</updated>
-      <workItem from="1689343066670" duration="3856000" />
-      <workItem from="1689359695216" duration="17910000" />
-      <workItem from="1689598833116" duration="33000" />
-      <workItem from="1689676769536" duration="784000" />
-      <workItem from="1689690827058" duration="1111000" />
-      <workItem from="1690464304845" duration="2257000" />
-    </task>
-    <task id="LOCAL-00001" summary="wip">
-      <option name="closed" value="true" />
-      <created>1689344044222</created>
-      <option name="number" value="00001" />
-      <option name="presentableId" value="LOCAL-00001" />
-      <option name="project" value="LOCAL" />
-      <updated>1689344044222</updated>
-    </task>
-    <task id="LOCAL-00002" summary="Add http server for testing in local">
-      <option name="closed" value="true" />
-      <created>1689344058480</created>
-      <option name="number" value="00002" />
-      <option name="presentableId" value="LOCAL-00002" />
-      <option name="project" value="LOCAL" />
-      <updated>1689344058480</updated>
-    </task>
-    <task id="LOCAL-00003" summary="Ignore node_modules">
-      <option name="closed" value="true" />
-      <created>1689344063967</created>
-      <option name="number" value="00003" />
-      <option name="presentableId" value="LOCAL-00003" />
-      <option name="project" value="LOCAL" />
-      <updated>1689344063967</updated>
-    </task>
-    <task id="LOCAL-00004" summary="How to start server">
-      <option name="closed" value="true" />
-      <created>1689344085833</created>
-      <option name="number" value="00004" />
-      <option name="presentableId" value="LOCAL-00004" />
-      <option name="project" value="LOCAL" />
-      <updated>1689344085833</updated>
-    </task>
-    <task id="LOCAL-00005" summary="First button stack">
-      <option name="closed" value="true" />
-      <created>1689587810126</created>
-      <option name="number" value="00005" />
-      <option name="presentableId" value="LOCAL-00005" />
-      <option name="project" value="LOCAL" />
-      <updated>1689587810126</updated>
-    </task>
-    <option name="localTasksCounter" value="6" />
     <servers />
-  </component>
-  <component name="TypeScriptGeneratedFilesManager">
-    <option name="version" value="3" />
-  </component>
-  <component name="VcsManagerConfiguration">
-    <MESSAGE value="wip" />
-    <MESSAGE value="Add http server for testing in local" />
-    <MESSAGE value="Ignore node_modules" />
-    <MESSAGE value="How to start server" />
-    <MESSAGE value="First button stack" />
-    <option name="LAST_COMMIT_MESSAGE" value="First button stack" />
   </component>
 </project>
