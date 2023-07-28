@@ -41,8 +41,9 @@ tinymce.PluginManager.add('button', function (editor, url) {
       ],
       onSubmit: function (api) {
         const data = api.getData()
+        const level = data.level ? data.level : 'primary'
         /* Insert content when the window form is submitted */
-        editor.insertContent('[button link="' + data.link + '" label="' + data.label + '"]')
+        editor.insertContent('[button link="' + data.link + '" label="' + data.label + '" level="' + level + '"]')
         api.close()
       }
     })
