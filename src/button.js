@@ -16,6 +16,15 @@ tinymce.PluginManager.add('button', function (editor, url) {
             type: 'input',
             name: 'label',
             label: 'Add Label (text) for your button'
+          },
+          {
+            type: 'selectbox',
+            name: 'level',
+            label: 'Choose the level of your button',
+            items: [
+              { text: 'Primary', value: 'primary' },
+              { text: 'Secondary', value: 'secondary' }
+            ]
           }
         ]
       },
