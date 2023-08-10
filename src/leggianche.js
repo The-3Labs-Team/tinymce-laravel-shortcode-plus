@@ -44,7 +44,7 @@ tinymce.PluginManager.add('leggianche', function (editor, url) {
     onSubmit: function (api) {
       const data = api.getData()
 
-      searchInNova(data.keyword, 'articles').then(function (results) {
+      searchInNova(data.keyword, ['posts', 'articles']).then(function (results) {
         api.redial(resultsPage(results))
       })
     }
@@ -112,7 +112,7 @@ tinymce.PluginManager.add('leggianche', function (editor, url) {
             .then(function (data) {
               console.table(data)
               return data.filter(function (item) {
-                return item.resourceName === type
+                  return type.includes(item.resourceName)
               })
             })
 
