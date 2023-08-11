@@ -1,83 +1,142 @@
 /* global tinymce */
 
 tinymce.PluginManager.add('shortcodeList', function (editor, url) {
+  const shortcodes = [
+    {
+      title: 'Photo/Gallery (new Media Hub)',
+      code: '[photo id="1" didascalia="optional" align="left|right" max-width="400"]',
+      description: 'Insert a photo/gallery using new Media Hub'
+    },
+    {
+      title: 'Photo',
+      code: '[image id="1" caption="optional"]',
+      description: 'Insert a photo'
+    },
+    {
+      title: 'Gallery',
+      code: '[gallery title="This is a title" images="1,2,3"]',
+      description: 'Insert a gallery'
+    },
+    {
+      title: 'Merchandise Product',
+      code: '[product id="1,2,3" amztag="nosp-guide" ebaycampaignid="123456" label="Miglior prodotto"]',
+      description: 'Insert a Merchandise Product'
+    },
+    {
+      title: 'Spotify',
+      code: '[spotify uri="track:123"]',
+      description: 'Insert spotify frame'
+    },
+    {
+      title: 'FAQ',
+      code: '[faq title="This is a title"]This is a text[/faq]',
+      description: 'Insert a FAQ'
+    },
+    {
+      title: 'Spoiler',
+      code: '[spoiler]This is an hidden content[/spoiler]',
+      description: 'Insert a spoiler'
+    },
+    {
+      title: 'Facebook',
+      code: '[facebook url="YOUR_URL_HERE"]',
+      description: 'Insert a facebook frame'
+    },
+    {
+      title: 'Twitter',
+      code: '[twitter url="YOUR_URL_HERE"]',
+      description: 'Insert a twitter frame'
+    },
+    {
+      title: 'Instagram',
+      code: '[instagram url="YOUR_URL_HERE"]',
+      description: 'Insert an instagram frame'
+    },
+    {
+      title: 'Distico',
+      code: '[distico]Insert Text here[/distico]',
+      description: 'Insert a "distico" frame'
+    },
+    {
+      title: 'Related Article',
+      code: '[leggianche id="1"]',
+      description: 'Insert a related block article'
+    },
+    {
+      title: 'TikTok',
+      code: '[tiktok url="YOUR_URL_HERE"]',
+      description: 'Insert a tiktok frame'
+    },
+    {
+      title: 'Movie - CulturaPop*',
+      code: '[movie id="1"]',
+      description: 'Insert a movie'
+    },
+    {
+      title: 'TV - CulturaPop*',
+      code: '[tv id="1"]',
+      description: 'Insert a TV show'
+    },
+    {
+      title: 'Video - CulturaPop*',
+      code: '[video id="1"]',
+      description: 'Insert a video'
+    },
+    {
+      title: 'Quiz - CulturaPop*',
+      code: '[quiz id="1"]',
+      description: 'Insert a quiz'
+    },
+    {
+      title: 'Challenge - CulturaPop*',
+      code: '[challenge id="1"]',
+      description: 'Insert a challenge'
+    },
+    {
+      title: 'Merchandise Product - Spaziogames*',
+      code: '[product id="1,2,3" amztag="nosp-guide" ebaycampaignid="123456"]',
+      description: 'Insert a Merchandise Product'
+    }
+  ]
+
   const content = `
-            <div style="width: 1250px;">
-                The content of the post. You can use all the features of the editor.
-                <ul style="list-style: none; padding: 0; margin: 0">
+    <div>
+    <p style="margin-bottom: 10px;">
+      The content of the post. You can use all the features of the editor.
+    <p>
 
-                    <li style="background-color: #e5e5e5; padding: 10px; margin: 10px 0;">
-                        <strong>[photo id="1" didascalia="optional" align="left|right" max-width="400"]</strong> - Insert a photo/gallery using new Media Hub
-                    </li>
-                    <li style="background-color: #e5e5e5; padding: 10px; margin: 10px 0;">
-                        <strong>[image id="1" caption="optional"]</strong> - Insert a photo
-                    </li>
-                    <li style="background-color: #e5e5e5; padding: 10px; margin: 10px 0;">
-                        <strong>[gallery title="This is a title" images="1,2,3"]</strong> - Insert a gallery
-                    </li>
-                    <li style="background-color: #e5e5e5; padding: 10px; margin: 10px 0;">
-                        <strong>[product id="1,2,3" amztag="nosp-guide" ebaycampaignid="123456" label="Miglior prodotto"]</strong> - Insert a Merchandise Product
-                    </li>
-                    <li style="background-color: #e5e5e5; padding: 10px; margin: 10px 0;">
-                        <strong>[spotify uri="track:123"]</strong> - Insert spotify frame
-                    </li>
-                    <li style="background-color: #e5e5e5; padding: 10px; margin: 10px 0;">
-                        <strong>[faq title="This is a title"]This is a text[/faq]</strong> - Insert a FAQ
-                    </li>
-                    <li style="background-color: #e5e5e5; padding: 10px; margin: 10px 0;">
-                        <strong>[spoiler]This is an hidden content[/spoiler]</strong> - Insert a spoiler
-                    </li>
-                    <li style="background-color: #e5e5e5; padding: 10px; margin: 10px 0;">
-                        <strong>[facebook url="YOUR_URL_HERE"]</strong> - Insert a facebook frame
-                    </li>
-                    <li style="background-color: #e5e5e5; padding: 10px; margin: 10px 0;">
-                        <strong>[twitter url="YOUR_URL_HERE"]</strong> - Insert a twitter frame
-                    </li>
-                    <li style="background-color: #e5e5e5; padding: 10px; margin: 10px 0;">
-                        <strong>[instagram url="YOUR_URL_HERE"]</strong> - Insert an instagram frame
-                    </li>
-                    <li style="background-color: #e5e5e5; padding: 10px; margin: 10px 0;">
-                        <strong>[distico]Insert Text here[/distico]</strong> - Insert a "distico" frame
-                    </li>
-                    <li style="background-color: #e5e5e5; padding: 10px; margin: 10px 0;">
-                        <strong>[leggianche id="1"]</strong> - Insert a related block article
-                    </li>
-                    <li style="background-color: #e5e5e5; padding: 10px; margin: 10px 0;">
-                        <strong>[tiktok url="YOUR_URL_HERE"]</strong> - Insert an tiktok frame
-                    </li>
-                </ul>
+      <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr>
+                <th style="border: 1px solid black; padding: 10px; font-weight: bold; text-align: center;">Name</th>
+                <th style="border: 1px solid black; padding: 10px; font-weight: bold; text-align: center;">Shortcode</th>
+                <th style="border: 1px solid black; padding: 10px; font-weight: bold; text-align: center;">Description</th>
+            </tr>
+        </thead>
+        <tbody>
+          ${shortcodes.map(({ title, code, description }) => `
+            <tr style="border: 1px solid black">
+              <td style="padding: 10px; border: 1px solid black;">${title}</td>
+              <td class="code" style="background-color: #e8e8e8; padding: 10px; border: 1px solid black; cursor: pointer"><strong class="code">${code}</strong></td>
+              <td style="padding: 10px; border: 1px solid black;">${description}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `
 
-                <p style="margin-top: 20px; margin-bottom: 10px">Only for CulturaPop*</p>
+  const customStyles = `
+  <style>
+    .tox-dialog {
+      max-width: 1350px !important;
+    }
 
-                <ul style="list-style: none; padding: 0; margin: 0">
-                    <li style="background-color: #e5e5e5; padding: 10px; margin: 10px 0;">
-                        <strong>[movie id="1"]</strong> - Insert a movie
-                    </li>
-                    <li style="background-color: #e5e5e5; padding: 10px; margin: 10px 0;">
-                        <strong>[tv id="1"]</strong> - Insert a TV show
-                    </li>
-                   <li style="background-color: #e5e5e5; padding: 10px; margin: 10px 0;">
-                        <strong>[video id="1"]</strong> - Insert a video
-                    </li>
-                    <li style="background-color: #e5e5e5; padding: 10px; margin: 10px 0;">
-                        <strong>[quiz id="1"]</strong> - Insert a quiz
-                    </li>
-                    <li style="background-color: #e5e5e5; padding: 10px; margin: 10px 0;">
-                        <strong>[challenge id="1"]</strong> - Insert a challenge
-                    </li>
-                </ul>
-
-                <p style="margin-top: 20px; margin-bottom: 10px">Only for Spaziogames*</p>
-
-                <ul style="list-style: none; padding: 0; margin: 0">
-                    <li style="background-color: #e5e5e5; padding: 10px; margin: 10px 0;">
-                        <strong>[product id="1,2,3" amztag="nosp-guide" ebaycampaignid="123456"]</strong> - Insert a Merchandise Product
-                    </li>
-                </ul>
-
-
-            </div>
-    `
+    .code:hover {
+        background-color: #d5d5d5 !important;
+    }
+  </style>
+`
 
   editor.ui.registry.addButton('shortcodeList', {
     icon: 'shortcodeList',
@@ -90,18 +149,21 @@ tinymce.PluginManager.add('shortcodeList', function (editor, url) {
           items: [
             {
               type: 'htmlpanel',
-              html: content
+              html: customStyles + content
             }
           ]
-        },
-        width: 1250
+        }
       })
-      const ul = document.querySelector('.tox-dialog__content-js ul')
-      console.log(ul)
-      ul.addEventListener('click', function (e) {
+
+      // Insert into editor
+      const table = document.querySelector('.tox-dialog__content-js table tbody')
+      table.addEventListener('click', function (e) {
         const target = e.target
-        editor.insertContent(target.innerHTML)
-        tinymce.activeEditor.windowManager.close()
+        console.log(target)
+        if (target.classList.contains('code')) {
+          editor.insertContent(target.innerText)
+          tinymce.activeEditor.windowManager.close()
+        }
       })
     }
   })
