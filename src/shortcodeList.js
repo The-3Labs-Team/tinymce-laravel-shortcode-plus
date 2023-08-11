@@ -96,6 +96,13 @@ tinymce.PluginManager.add('shortcodeList', function (editor, url) {
         },
         width: 1250
       })
+      const ul = document.querySelector('.tox-dialog__content-js ul')
+      console.log(ul)
+      ul.addEventListener('click', function (e) {
+        const target = e.target
+        editor.insertContent(target.innerHTML)
+        tinymce.activeEditor.windowManager.close()
+      })
     }
   })
 
