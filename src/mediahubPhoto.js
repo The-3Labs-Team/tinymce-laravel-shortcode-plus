@@ -123,7 +123,7 @@ function printCards (cards) {
     cards.forEach((card, index) => {
       const cardHtml = `
         <label class="checkboxes" style="margin: 10px; position: relative; display: flex; flex-direction: column; cursor: pointer; background-color: #d1d1d1;">
-            <img src="${card.url}" style="width: 100%; height: 100%; object-fit: cover; padding: 25px 25px 5px 25px;">
+            <img src="${card.thumbnail_url ?? card.url}" style="width: 100%; height: 100%; object-fit: cover; padding: 25px 25px 5px 25px;">
             <span style="position: absolute; top: 0; right: 0; padding: 3px;" ">#${card.id}</span>
             <p style="text-align: center; padding: 4px; font-size: .8rem; margin-bottom: 5px">${card.file_name}</p>
             <input type="checkbox" name="id-${index}" style="position: absolute; top: 0; left: 0; display: none" value="${card.id}">
