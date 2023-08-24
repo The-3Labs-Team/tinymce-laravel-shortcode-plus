@@ -2,9 +2,19 @@
 
 tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
   const content = `
-    <form method="GET" id="query">
-            <input type="text" placeholder="Search images" name="query" style="border: 1px solid black; padding: 5px">
-    </form>
+    <section style="display: flex; align-items: center;">
+        <form method="GET" id="query">
+                <input type="text" placeholder="Search images" name="query" style="border: 1px solid black; padding: 5px">
+        </form>
+
+        <!--Slider-->
+        <div style="display: flex; margin-left: 30px;">
+            <input type="range" name="slider-dimensions" min="2" max="6" value="3" onchange="sliderDimensions(this.value)">
+            <span id="slider-dimensions-value" style="margin-left: 5px;">3</span>
+        </div>
+    </section>
+
+
     <form method="GET" id="data">
         <div style="display: flex;">
 
@@ -103,12 +113,13 @@ tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
 })
 
 // === FUNCTIONS === //
-
 function searchImages (query) {
   const formQuery = document.querySelector('.tox-dialog__content-js form#query')
+  const container = document.querySelector('#card-container')
 
   formQuery.addEventListener('submit', async function (e) {
     e.preventDefault()
+    container.innerHTML = 'Loading images...'
 
     // Get query from Form
     const formData = new FormData(formQuery)
@@ -117,13 +128,11 @@ function searchImages (query) {
     // Search in Nova
     const cards = query.length > 0 ? await searchInNova(query) : []
 
-    printCards(cards)
+    printCards(cards, container)
   })
 }
 
-function printCards (cards) {
-  const container = document.querySelector('#card-container')
-
+function printCards (cards, container, range = 3) {
   // Reset container
   container.innerHTML = ''
 
@@ -132,7 +141,7 @@ function printCards (cards) {
     cards.forEach((card, index) => {
       const cardHtml = `
         <label class="checkboxes" style="margin: 10px; position: relative; display: flex; flex-direction: column; cursor: pointer; background-color: #d1d1d1;">
-            <img src="${card.thumbnail_url ?? card.url}" style="width: 100%; height: 100%; object-fit: cover; padding: 25px 25px 5px 25px;">
+            <img src="${card.thumbnail_url ?? card.url}" style="width: 100%; height: 250px; object-fit: cover; padding: 25px 25px 5px 25px;">
             <span style="position: absolute; top: 0; right: 0; padding: 3px;" ">#${card.id}</span>
             <p style="text-align: center; padding: 4px; font-size: .8rem; margin-bottom: 5px">${card.file_name}</p>
             <input type="checkbox" name="id-${index}" style="position: absolute; top: 0; left: 0; display: none" value="${card.id}">
@@ -226,4 +235,14 @@ function activeCards () {
       }
     })
   })
+}
+
+function sliderDimensions (value) {
+  // Get Range Value
+  const rangeValue = document.querySelector('#slider-dimensions-value')
+  rangeValue.innerHTML = value
+
+  // Set Grid Template Columns
+  const cardContainer = document.querySelector('#card-container')
+  cardContainer.style.gridTemplateColumns = `repeat(${value}, 1fr)`
 }
