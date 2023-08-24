@@ -32,6 +32,15 @@ tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
             </div>
 
             <div style="margin: 10px;">
+                <label for="effect" style="display: block; margin-bottom: 5px;">Effect</label>
+                <select name="effect" style="background-color: white; padding: 5px; width: 100%">
+                    <option value="" selected>--Select effect--</option>
+                    <option value="juxtapose">Image Compare</option>
+                    <option value="carousel">Carousel</option>
+                </select>
+            </div>
+
+            <div style="margin: 10px;">
                 <label for="max-width" style="display: block; margin-bottom: 5px;">Larghezza</label>
                 <input type="number" placeholder="Insert max width" name="max-width" value="max-width" style="padding: 5px; background-color: white; width: 100%">
             </div>
@@ -151,8 +160,9 @@ function insetDataIntoEditor (editor) {
     const caption = formData.get('caption') ? `didascalia="${formData.get('caption')}"` : ''
     const align = formData.get('align') ? `align="${formData.get('align')}"` : ''
     const maxWidth = formData.get('max-width') ? `max-width="${formData.get('max-width')}"` : ''
+    const effect = formData.get('effect') ? `effect="${formData.get('effect')}"` : ''
 
-    const result = `[photo id="${ids}" ${caption} ${align} ${maxWidth}]`
+    const result = `[photo id="${ids}" ${caption} ${align} ${maxWidth} ${effect}]`
     editor.insertContent(result)
     tinymce.activeEditor.windowManager.close()
   })
