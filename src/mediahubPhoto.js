@@ -182,7 +182,7 @@ function searchInNova (keyword) {
   // Fetch results from Nova API Global Search
   const results =
 
-        fetch('/nova-vendor/media-hub/media?collection=default&page=1&search=' + keyword, {
+        fetch('/nova-vendor/media-hub/media?page=1&search=' + keyword, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json'
