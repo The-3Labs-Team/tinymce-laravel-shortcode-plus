@@ -2,9 +2,19 @@
 
 tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
   const content = `
-    <form method="GET" id="query">
-            <input type="text" placeholder="Search images" name="query" style="border: 1px solid black; padding: 5px">
-    </form>
+    <section style="display: flex; align-items: center;">
+        <form method="GET" id="query">
+                <input type="text" placeholder="Search images" name="query" style="border: 1px solid black; padding: 5px">
+        </form>
+
+        <!--Slider-->
+        <div style="display: flex; margin-left: 30px;">
+            <input type="range" name="slider-dimensions" id="slider-dimensions" min="2" max="6" value="3" onchange="sliderDimensions(this.value)">
+            <span id="slider-dimensions-value" style="margin-left: 5px;">3</span>
+        </div>
+    </section>
+
+
     <form method="GET" id="data">
         <div style="display: flex;">
 
@@ -103,12 +113,13 @@ tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
 })
 
 // === FUNCTIONS === //
-
 function searchImages (query) {
   const formQuery = document.querySelector('.tox-dialog__content-js form#query')
+  const container = document.querySelector('#card-container')
 
   formQuery.addEventListener('submit', async function (e) {
     e.preventDefault()
+    container.innerHTML = 'Loading images...'
 
     // Get query from Form
     const formData = new FormData(formQuery)
@@ -117,25 +128,28 @@ function searchImages (query) {
     // Search in Nova
     const cards = query.length > 0 ? await searchInNova(query) : []
 
-    printCards(cards)
+    sliderDimensions(3)
+    printCards(cards, container)
   })
 }
 
-function printCards (cards) {
-  const container = document.querySelector('#card-container')
-
+function printCards (cards, container, range = 3) {
   // Reset container
   container.innerHTML = ''
+
+  console.log(sliderDimensions)
 
   // Print cards on DOM
   if (cards.length > 0) {
     cards.forEach((card, index) => {
       const cardHtml = `
-        <label class="checkboxes" style="margin: 10px; position: relative; display: flex; flex-direction: column; cursor: pointer; background-color: #d1d1d1;">
-            <img src="${card.thumbnail_url ?? card.url}" style="width: 100%; height: 100%; object-fit: cover; padding: 25px 25px 5px 25px;">
-            <span style="position: absolute; top: 0; right: 0; padding: 3px;" ">#${card.id}</span>
+        <label class="checkboxes" style="margin: 10px; position: relative; display: flex; flex-direction: column; flex-grow: 1; cursor: pointer; background-color: #d1d1d1;">
+            <div style="height: 250px; padding: 10px 0">
+                <img src="${card.thumbnail_url ?? card.url}" style="width: 100%; height: 100%; object-fit: cover; padding: 25px 25px 5px 25px;">
+                <span style="position: absolute; top: 0; right: 0; padding: 3px;" ">#${card.id}</span>
+                <input type="checkbox" name="id-${index}" style="position: absolute; top: 0; left: 0; display: none" value="${card.id}">
+            </div>
             <p style="text-align: center; padding: 4px; font-size: .8rem; margin-bottom: 5px">${card.file_name}</p>
-            <input type="checkbox" name="id-${index}" style="position: absolute; top: 0; left: 0; display: none" value="${card.id}">
         </label>
         `
       container.innerHTML += cardHtml
@@ -173,7 +187,7 @@ function searchInNova (keyword) {
   // Fetch results from Nova API Global Search
   const results =
 
-        fetch('/nova-vendor/media-hub/media?collection=default&page=1&search=' + keyword, {
+        fetch('/nova-vendor/media-hub/media?page=1&search=' + keyword, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json'
@@ -225,5 +239,38 @@ function activeCards () {
         this.classList.remove('active')
       }
     })
+  })
+}
+
+function sliderDimensions (value) {
+  // Get Range Value
+  const rangeValue = document.querySelector('#slider-dimensions-value')
+  rangeValue.innerHTML = value
+
+  // Set Grid Template Columns
+  const cardContainer = document.querySelector('#card-container')
+  cardContainer.style.gridTemplateColumns = `repeat(${value}, 1fr)`
+
+  // Set Image Height
+  const imageContainers = document.querySelectorAll('.checkboxes div')
+
+  imageContainers.forEach(imageContainer => {
+    const image = imageContainer.querySelector('img')
+
+    if (value == 2) {
+      imageContainer.style.height = '300px'
+    }
+    if (value == 3) {
+      imageContainer.style.height = '250px'
+    }
+    if (value == 4) {
+      imageContainer.style.height = '160px'
+    }
+    if (value == 5) {
+      imageContainer.style.height = '150px'
+    }
+    if (value == 6) {
+      imageContainer.style.height = '100px'
+    }
   })
 }
