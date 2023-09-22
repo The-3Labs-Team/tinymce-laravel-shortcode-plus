@@ -33,6 +33,11 @@ tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
             </div>
 
             <div style="margin: 10px;">
+                <label for="link" style="display: block; margin-bottom: 5px;">Link</label>
+                <input type="text" placeholder="Insert link" name="link" style="background-color: white; padding: 5px; width: 100%">
+            </div>
+
+            <div style="margin: 10px;">
                 <label for="align" style="display: block; margin-bottom: 5px;">Allineamento</label>
                 <select name="align" style="background-color: white; padding: 5px; width: 100%">
                     <option value="" selected>--Select alignment--</option>
@@ -172,11 +177,12 @@ function insetDataIntoEditor (editor) {
     const ids = getIds(formData)
 
     const caption = formData.get('caption') ? `didascalia="${formData.get('caption')}"` : ''
+    const link = formData.get('link') ? `link="${formData.get('link')}"` : ''
     const align = formData.get('align') ? `align="${formData.get('align')}"` : ''
     const maxWidth = formData.get('max-width') ? `max-width="${formData.get('max-width')}"` : ''
     const effect = formData.get('effect') ? `effect="${formData.get('effect')}"` : ''
 
-    const result = `[photo id="${ids}" ${caption} ${align} ${maxWidth} ${effect}]`
+    const result = `[photo id="${ids}" ${caption} ${link} ${align} ${maxWidth} ${effect}]`
     editor.insertContent(result)
     tinymce.activeEditor.windowManager.close()
   })
