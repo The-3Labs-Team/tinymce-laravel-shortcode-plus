@@ -50,6 +50,7 @@ tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
                 <label for="effect" style="display: block; margin-bottom: 5px;">Effect</label>
                 <select name="effect" style="background-color: white; padding: 5px; width: 100%">
                     <option value="" selected>--Select effect--</option>
+                    <option value="">Default</option>
                     <option value="juxtapose">Image Compare</option>
                     <option value="carousel">Carousel</option>
                 </select>
