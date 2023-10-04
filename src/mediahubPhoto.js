@@ -15,7 +15,7 @@ tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
     </section>
 
 
-    <form method="GET" id="data">
+    <form method="GET" id="data" style="color: black">
         <div style="display: flex;">
 
             <div style="width: 80%; height: 700px; margin: 10px; background-color: #eeeeee; overflow: auto">
@@ -73,7 +73,9 @@ tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
             </div>
 
         </div>
+        
     </form>
+
   `
 
   const customStyles = `
