@@ -115,9 +115,9 @@ tinymce.PluginManager.add('shortcodeList', function (editor, url) {
         </thead>
         <tbody>
           ${shortcodes.map(({ title, code, description }) => `
-            <tr style="border: 1px solid black">
+            <tr style="border: 1px solid black;">
               <td style="padding: 10px; border: 1px solid black;">${title}</td>
-              <td class="code" style="background-color: #e8e8e8; padding: 10px; border: 1px solid black; cursor: pointer"><strong class="code">${code}</strong></td>
+              <td class="code" style="background-color: #e8e8e8; padding: 10px; border: 1px solid black; cursor: pointer; color: black"><strong class="code">${code}</strong></td>
               <td style="padding: 10px; border: 1px solid black;">${description}</td>
             </tr>
           `).join('')}
@@ -135,6 +135,11 @@ tinymce.PluginManager.add('shortcodeList', function (editor, url) {
     .code:hover {
         background-color: #d5d5d5 !important;
     }
+
+}
+
+
+
   </style>
 `
 
