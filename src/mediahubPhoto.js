@@ -57,6 +57,15 @@ tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
             </div>
 
             <div style="margin: 10px;">
+                <label for="shape" style="display: block; margin-bottom: 5px;">Shape</label>
+                <select name="shape" style="background-color: white; padding: 5px; width: 100%">
+                    <option value="" selected>--Select shape--</option>
+                    <option value="">Default</option>
+                    <option value="rounded">Rounded</option>
+                </select>
+            </div>
+
+            <div style="margin: 10px;">
                 <label for="max-width" style="display: block; margin-bottom: 5px;">Larghezza</label>
                 <input type="number" placeholder="Insert max width" name="max-width" value="max-width" style="padding: 5px; background-color: white; width: 100%">
             </div>
@@ -182,8 +191,9 @@ function insetDataIntoEditor (editor) {
     const align = formData.get('align') ? `align="${formData.get('align')}"` : ''
     const maxWidth = formData.get('max-width') ? `max-width="${formData.get('max-width')}"` : ''
     const effect = formData.get('effect') ? `effect="${formData.get('effect')}"` : ''
+    const shape = formData.get('shape') ? `shape="${formData.get('shape')}"` : ''
 
-    const result = `[photo id="${ids}" ${caption} ${link} ${align} ${maxWidth} ${effect}]`
+    const result = `[photo id="${ids}" ${caption} ${link} ${align} ${maxWidth} ${effect} ${shape}]`
     editor.insertContent(result)
     tinymce.activeEditor.windowManager.close()
   })
