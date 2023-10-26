@@ -18,6 +18,11 @@ tinymce.PluginManager.add('shortcodeList', function (editor, url) {
       description: 'Insert a gallery'
     },
     {
+      title: 'Button',
+      code: '[button link="https://www.your-link.com" label="Add a label" level="primary|secondary"]',
+      description: 'Insert a button'
+    },
+    {
       title: 'Merchandise Product',
       code: '[product id="1,2,3" amztag="nosp-guide" ebaycampaignid="123456" label="Miglior prodotto"]',
       description: 'Insert a Merchandise Product'
