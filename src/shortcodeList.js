@@ -23,6 +23,11 @@ tinymce.PluginManager.add('shortcodeList', function (editor, url) {
       description: 'Insert a button'
     },
     {
+      title: 'Widgetbay',
+      code: '[widgetbay id="optional" link="optional"',
+      description: 'Insert a widgetbay iframe. You can use the id or the link, but not both'
+    },
+    {
       title: 'Merchandise Product',
       code: '[product id="1,2,3" amztag="nosp-guide" ebaycampaignid="123456" label="Miglior prodotto"]',
       description: 'Insert a Merchandise Product'
