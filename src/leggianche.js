@@ -112,7 +112,7 @@ tinymce.PluginManager.add('leggianche', function (editor, url) {
             .then(function (data) {
               console.table(data)
               return data.filter(function (item) {
-                  return type.includes(item.resourceName)
+                return type.includes(item.resourceName)
               })
             })
 

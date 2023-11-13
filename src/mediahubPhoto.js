@@ -73,7 +73,7 @@ tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
             </div>
 
         </div>
-        
+
     </form>
 
   `
@@ -274,21 +274,19 @@ function sliderDimensions (value) {
   const imageContainers = document.querySelectorAll('.checkboxes div')
 
   imageContainers.forEach(imageContainer => {
-    const image = imageContainer.querySelector('img')
-
-    if (value == 2) {
+    if (value === 2) {
       imageContainer.style.height = '300px'
     }
-    if (value == 3) {
+    if (value === 3) {
       imageContainer.style.height = '250px'
     }
-    if (value == 4) {
+    if (value === 4) {
       imageContainer.style.height = '160px'
     }
-    if (value == 5) {
+    if (value === 5) {
       imageContainer.style.height = '150px'
     }
-    if (value == 6) {
+    if (value === 6) {
       imageContainer.style.height = '100px'
     }
   })

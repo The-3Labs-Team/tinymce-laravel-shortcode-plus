@@ -36,10 +36,10 @@ tinymce.PluginManager.add('widgetbay', function (editor, url) {
       onSubmit: function (api) {
         const data = api.getData()
 
-        $id = data.id ? 'id="' + data.id + '"' : null
-        $link = data.link ? 'link="' + data.link + '"' : null
+        const id = data.id ? 'id="' + data.id + '"' : null
+        const link = data.link ? 'link="' + data.link + '"' : null
 
-        editor.insertContent('[widgetbay ' + ($id ?? $link) + ']')
+        editor.insertContent('[widgetbay ' + (id ?? link) + ']')
         api.close()
       }
     })
