@@ -24,7 +24,7 @@ tinymce.PluginManager.add('shortcodeList', function (editor, url) {
     },
     {
       title: 'Widgetbay',
-      code: '[widgetbay id="optional" link="optional"]',
+      code: '[widgetbay id="optional" or link="optional" type="iframe|oembed" firstCss="true"]',
       description: 'Insert a widgetbay iframe. You can use the id or the link, but not both'
     },
     {
