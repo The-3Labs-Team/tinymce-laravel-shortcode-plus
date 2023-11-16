@@ -19,6 +19,21 @@ tinymce.PluginManager.add('widgetbay', function (editor, url) {
             name: 'link',
             label: 'or add product URL',
             placeholder: 'https://www.amazon.it/B...'
+          },
+          {
+            type: 'selectbox',
+            name: 'type',
+            label: 'Type',
+            items: [
+              { text: 'oEmbed', value: 'oembed' },
+              { text: 'Iframe', value: 'iframe' }
+            ]
+          },
+          {
+            type: 'checkbox',
+            name: 'firstCss',
+            label: 'First CSS (Set to true if this is the first widgetbay shortcode in the page)',
+            checked: false
           }
         ]
       },
@@ -36,10 +51,12 @@ tinymce.PluginManager.add('widgetbay', function (editor, url) {
       onSubmit: function (api) {
         const data = api.getData()
 
-        const id = data.id ? 'id="' + data.id + '"' : null
-        const link = data.link ? 'link="' + data.link + '"' : null
+        const id = data.id ? 'id="' + data.id + '" ' : null
+        const link = data.link ? 'link="' + data.link + '" ' : null
+        const type = data.type ? 'type="' + data.type + '" ' : ''
+        const firstCss = data.firstCss === true ? 'first_css="' + data.firstCss + '" ' : ''
 
-        editor.insertContent('[widgetbay ' + (id ?? link) + ']')
+        editor.insertContent('[widgetbay ' + (id ?? link) + type + firstCss + ']')
         api.close()
       }
     })
