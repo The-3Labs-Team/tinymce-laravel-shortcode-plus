@@ -28,12 +28,6 @@ tinymce.PluginManager.add('widgetbay', function (editor, url) {
               { text: 'oEmbed', value: 'oembed' },
               { text: 'Iframe', value: 'iframe' }
             ]
-          },
-          {
-            type: 'checkbox',
-            name: 'firstCss',
-            label: 'First CSS (Set to true if this is the first widgetbay shortcode in the page)',
-            checked: false
           }
         ]
       },
@@ -54,9 +48,8 @@ tinymce.PluginManager.add('widgetbay', function (editor, url) {
         const id = data.id ? 'id="' + data.id + '" ' : null
         const link = data.link ? 'link="' + data.link + '" ' : null
         const type = data.type ? 'type="' + data.type + '" ' : ''
-        const firstCss = data.firstCss === true ? 'first_css="' + data.firstCss + '" ' : ''
 
-        editor.insertContent('[widgetbay ' + (id ?? link) + type + firstCss + ']')
+        editor.insertContent('[widgetbay ' + (id ?? link) + type + ']')
         api.close()
       }
     })
