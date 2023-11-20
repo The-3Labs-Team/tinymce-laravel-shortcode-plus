@@ -69,7 +69,7 @@ tinymce.PluginManager.add('searchPublicApi', function (editor, url) {
           ]
         }
       })
-      getArticle()
+      getArticles()
     }
   })
 
@@ -87,7 +87,7 @@ tinymce.PluginManager.add('searchPublicApi', function (editor, url) {
 
 // === FUNCTIONS === //
 
-async function getArticle () {
+async function getArticles () {
   const formQuery = document.querySelector('.tox-dialog__content-js form#query')
   const searchStatus = document.querySelector('.tox-dialog__content-js #search-status')
 
@@ -98,15 +98,15 @@ async function getArticle () {
     const formData = new FormData(formQuery)
     const query = formData.get('q')
 
-    const tomshardwareArticles = await searchArticle(`http://tomshardware.test/api/articles?q=${query}`)
-    const spazioGamesArticles = await searchArticle(`http://spaziogames.test/api/articles?q=${query}`)
-    const cpopArticles = await searchArticle(`http://nospoiler.test/api/articles?q=${query}`)
+    const tomshardwareArticles = await searchArticles(`http://tomshardware.test/api/articles?q=${query}`)
+    const spazioGamesArticles = await searchArticles(`http://spaziogames.test/api/articles?q=${query}`)
+    const cpopArticles = await searchArticles(`http://nospoiler.test/api/articles?q=${query}`)
 
     printArticles([tomshardwareArticles, spazioGamesArticles, cpopArticles])
   })
 }
 
-async function searchArticle (url) {
+async function searchArticles (url) {
   try {
     const response = await fetch(url, {
       method: 'GET',
@@ -119,7 +119,7 @@ async function searchArticle (url) {
     if (response.ok) {
       return response.json()
     }
-    // throw new Error('Errore nella richiesta' + url)
+    throw new Error('Errore nella richiesta')
   } catch (error) {
     console.error('Si è verificato un errore:', error)
     throw error
