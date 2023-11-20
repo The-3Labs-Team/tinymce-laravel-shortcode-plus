@@ -106,21 +106,6 @@ async function getArticle () {
   })
 }
 
-function addArticleLinkOnEditor () {
-  const articleForm = document.querySelectorAll('.article-form-submit')
-  articleForm.forEach(form => {
-    form.addEventListener('submit', (e) => {
-      e.preventDefault()
-      const formDataArticle = new FormData(form)
-      const title = formDataArticle.get('title')
-      const url = formDataArticle.get('url')
-      const content = `<a href="${url}" target="_blank">${title}</a>`
-      tinymce.activeEditor.insertContent(content)
-      tinymce.activeEditor.windowManager.close()
-    })
-  })
-}
-
 async function searchArticle (url) {
   try {
     const response = await fetch(url, {
@@ -180,4 +165,19 @@ function generateArticlesCardHtml (article) {
         </button>
     </form>
     `
+}
+
+function addArticleLinkOnEditor () {
+  const articleForm = document.querySelectorAll('.article-form-submit')
+  articleForm.forEach(form => {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault()
+      const formDataArticle = new FormData(form)
+      const title = formDataArticle.get('title')
+      const url = formDataArticle.get('url')
+      const content = `<a href="${url}" target="_blank">${title}</a>`
+      tinymce.activeEditor.insertContent(content)
+      tinymce.activeEditor.windowManager.close()
+    })
+  })
 }
