@@ -93,7 +93,6 @@ function getArticles () {
 
   formQuery.addEventListener('submit', async (e) => {
     e.preventDefault()
-    console.log('SUBMIT')
     resetArticles()
     searchStatus.innerHTML = 'Searching...'
 
@@ -106,7 +105,7 @@ function getArticles () {
 }
 
 function searchArticles (query) {
-  const results = fetch(`/api/articles/fetch?q=${query}`, {
+  const results = fetch(`/api-internal/articles/fetch?q=${query}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -131,7 +130,6 @@ function printArticles (articles) {
   const searchStatus = document.querySelector('.tox-dialog__content-js #search-status')
 
   searchStatus.innerHTML = ''
-  console.log(articles)
   // Tom's Hardware
   articles.tomshardware !== null && articles.tomshardware.forEach(article => {
     tomshardwareContainer.innerHTML += generateArticlesCardHtml(article)
@@ -158,7 +156,14 @@ function generateArticlesCardHtml (article) {
             <p>
                 ${article.author}
                 <br>
-                ${new Date(article.published_at)}
+                ${new Date(article.published_at).toLocaleString('it-IT', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+    })}
             </p>
         </button>
     </form>
