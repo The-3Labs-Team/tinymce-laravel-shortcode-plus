@@ -99,6 +99,11 @@ function getArticles () {
     const formData = new FormData(formQuery)
     const query = formData.get('q')
 
+    if (query.length < 3) {
+      searchStatus.innerHTML = 'Search query too short'
+      return
+    }
+
     const articles = await searchArticles(query)
     printArticles(articles)
   })
