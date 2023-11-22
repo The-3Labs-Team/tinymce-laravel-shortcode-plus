@@ -87,43 +87,41 @@ tinymce.PluginManager.add('searchPublicApi', function (editor, url) {
 
 // === FUNCTIONS === //
 
-async function getArticles () {
+function getArticles () {
   const formQuery = document.querySelector('.tox-dialog__content-js form#query')
   const searchStatus = document.querySelector('.tox-dialog__content-js #search-status')
 
   formQuery.addEventListener('submit', async (e) => {
     e.preventDefault()
+    console.log('SUBMIT')
+    resetArticles()
     searchStatus.innerHTML = 'Searching...'
 
     const formData = new FormData(formQuery)
     const query = formData.get('q')
 
-    const tomshardwareArticles = await searchArticles(`http://tomshardware.test/api/articles?q=${query}`)
-    const spazioGamesArticles = await searchArticles(`http://spaziogames.test/api/articles?q=${query}`)
-    const cpopArticles = await searchArticles(`http://nospoiler.test/api/articles?q=${query}`)
-
-    printArticles([tomshardwareArticles, spazioGamesArticles, cpopArticles])
+    const articles = await searchArticles(query)
+    printArticles(articles)
   })
 }
 
-async function searchArticles (url) {
-  try {
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        token: 'key'
+function searchArticles (query) {
+  const results = fetch(`/api/articles/fetch?q=${query}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      token: 'key'
+    }
+  })
+    .then(function (response) {
+      if (response.ok) {
+        return response.json()
+      } else {
+        throw new Error('Errore nella richiesta')
       }
     })
 
-    if (response.ok) {
-      return response.json()
-    }
-    throw new Error('Errore nella richiesta')
-  } catch (error) {
-    console.error('Si è verificato un errore:', error)
-    throw error
-  }
+  return results
 }
 
 function printArticles (articles) {
@@ -133,17 +131,17 @@ function printArticles (articles) {
   const searchStatus = document.querySelector('.tox-dialog__content-js #search-status')
 
   searchStatus.innerHTML = ''
-
+  console.log(articles)
   // Tom's Hardware
-  articles[0].forEach(article => {
+  articles.tomshardware !== null && articles.tomshardware.forEach(article => {
     tomshardwareContainer.innerHTML += generateArticlesCardHtml(article)
   })
   // SpazioGames
-  articles[1].forEach(article => {
+  articles.spaziogames !== null && articles.spaziogames.forEach(article => {
     spaziogamesContainer.innerHTML += generateArticlesCardHtml(article)
   })
   // Cpop
-  articles[2].forEach(article => {
+  articles.cpop !== null && articles.cpop.forEach(article => {
     cpopContainer.innerHTML += generateArticlesCardHtml(article)
   })
 
@@ -180,4 +178,14 @@ function addArticleLinkOnEditor () {
       tinymce.activeEditor.windowManager.close()
     })
   })
+}
+
+function resetArticles () {
+  const tomshardwareContainer = document.querySelector('#article-tomshardware-container')
+  const spaziogamesContainer = document.querySelector('#article-spaziogames-container')
+  const cpopContainer = document.querySelector('#article-cpop-container')
+
+  tomshardwareContainer.innerHTML = ''
+  spaziogamesContainer.innerHTML = ''
+  cpopContainer.innerHTML = ''
 }
