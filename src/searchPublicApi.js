@@ -135,18 +135,25 @@ function printArticles (articles) {
   const searchStatus = document.querySelector('.tox-dialog__content-js #search-status')
 
   searchStatus.innerHTML = ''
+  console.log(articles.tomshardware.length)
   // Tom's Hardware
-  articles.tomshardware !== null && articles.tomshardware.forEach(article => {
-    tomshardwareContainer.innerHTML += generateArticlesCardHtml(article)
-  })
-  // SpazioGames
-  articles.spaziogames !== null && articles.spaziogames.forEach(article => {
-    spaziogamesContainer.innerHTML += generateArticlesCardHtml(article)
-  })
-  // Cpop
-  articles.cpop !== null && articles.cpop.forEach(article => {
-    cpopContainer.innerHTML += generateArticlesCardHtml(article)
-  })
+  articles.tomshardware !== null && articles.tomshardware.length > 0
+    ? articles.tomshardware.forEach(article => {
+      tomshardwareContainer.innerHTML += generateArticlesCardHtml(article)
+    })
+    : tomshardwareContainer.innerHTML = '<p>No results</p>'
+    // SpazioGames
+  articles.spaziogames !== null && articles.spaziogames.length > 0
+    ? articles.spaziogames.forEach(article => {
+      spaziogamesContainer.innerHTML += generateArticlesCardHtml(article)
+    })
+    : spaziogamesContainer.innerHTML = '<p>No results</p>'
+    // Cpop
+  articles.cpop !== null && articles.cpop.length > 0
+    ? articles.cpop.forEach(article => {
+      cpopContainer.innerHTML += generateArticlesCardHtml(article)
+    })
+    : cpopContainer.innerHTML = '<p>No results</p>'
 
   addArticleLinkOnEditor()
 }
