@@ -188,9 +188,18 @@ function addArticleLinkOnEditor () {
     form.addEventListener('submit', (e) => {
       e.preventDefault()
       const formDataArticle = new FormData(form)
-      const title = formDataArticle.get('title')
+
+      let title = formDataArticle.get('title')
       const url = formDataArticle.get('url')
+
+      const selectedText = tinymce.activeEditor.selection.getContent()
+
+      if (selectedText.length > 0) {
+        title = selectedText
+      }
+
       const content = `<a href="${url}" target="_blank">${title}</a>`
+
       tinymce.activeEditor.insertContent(content)
       tinymce.activeEditor.windowManager.close()
     })
