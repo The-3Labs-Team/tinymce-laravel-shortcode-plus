@@ -95,9 +95,9 @@ async function lastSurvey() {
 
 async function getSurveys(query = '') {
   try {
-    let url = '/api/survey'
+    let url = '/nova-vendor/the-3labs-team/nova-survey-package/search'
     if (query !== '') {
-      url = `/api/survey?query=${query}`
+      url = `/nova-vendor/the-3labs-team/nova-survey-package/search?query=${query}`
     }
     const response = await fetch(url, {
       method: 'GET',
