@@ -6,7 +6,12 @@ tinymce.PluginManager.add('index', function (editor, url) {
       title: 'Index',
       body: {
         type: 'panel',
-        items: []
+        items: [
+          {
+            type: 'htmlpanel',
+            html: '<p>Aggiungendo un index, tutte le intestazioni (H1, H2, H3… H6) verranno inserite automaticamente all’interno di una lista non ordinata. Assicurati che le intestazioni seguano sempre l’ordine corretto.</p>'
+          }
+        ]
       },
       buttons: [
         {
