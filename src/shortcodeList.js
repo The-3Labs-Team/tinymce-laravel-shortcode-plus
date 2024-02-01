@@ -23,6 +23,11 @@ tinymce.PluginManager.add('shortcodeList', function (editor, url) {
       description: 'Insert a button'
     },
     {
+      title: 'Index',
+      code: '[index]',
+      description: 'Insert an index to the article'
+    },
+    {
       title: 'Widgetbay',
       code: '[widgetbay id="optional" link="optional"]',
       description: 'Insert a widgetbay iframe. You can use the id or the link, but not both'
