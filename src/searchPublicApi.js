@@ -110,7 +110,7 @@ function getArticles () {
 }
 
 function searchArticles (query) {
-  const results = fetch(`/api-internal/articles/fetch?q=${query}`, {
+  const results = fetch(`/vendor/the-3labs-team/laravel-search-public-api/articles/fetch?q=${query}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
