@@ -198,7 +198,7 @@ function addArticleLinkOnEditor () {
         title = selectedText
       }
 
-      const content = `<a href="${url}" target="_blank">${title}</a>`
+      const content = `<a href="${url}">${title}</a>`
 
       tinymce.activeEditor.insertContent(content)
       tinymce.activeEditor.windowManager.close()
