@@ -4,7 +4,7 @@ tinymce.PluginManager.add('shortcodeList', function (editor, url) {
   const shortcodes = [
     {
       title: 'Photo/Gallery (new Media Hub)',
-      code: '[photo id="1" didascalia="optional" align="left|right" max-width="400" effect="carousel|juxtapose"]',
+      code: '[photo id="1" didascalia="optional" align="left|right" max-width="400" effect="carousel|juxtapose" link="https://..." shape="default|rounded"]',
       description: 'Insert a photo/gallery using new Media Hub'
     },
     {
