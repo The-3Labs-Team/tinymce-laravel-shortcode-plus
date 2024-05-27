@@ -39,7 +39,7 @@ tinymce.PluginManager.add('trivia', function (editor, url) {
         border: 3px solid #ea1e1e !important;
     }
         
-    tbody#last-survey-container tr:hover {
+    tbody#last-trivia-container tr:hover {
         background-color: #e1e1e1 !important;
     }
 
@@ -69,7 +69,7 @@ tinymce.PluginManager.add('trivia', function (editor, url) {
       searchTrivia()
 
       // Insert into editor
-      insetData(editor)
+      insetDataTrivia(editor)
     }
   })
 
@@ -161,7 +161,7 @@ function searchTrivia(query) {
 
 }
 
-function insetData(editor) {
+function insetDataTrivia(editor) {
   const formTrivia = document.querySelector('.tox-dialog__content-js form#trivia-data')
 
   formTrivia.addEventListener('submit', function (e) {
