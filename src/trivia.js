@@ -94,9 +94,10 @@ async function lastTrivia() {
 
 async function getTrivia(query = '') {
   try {
-    let url = '/trivia/search'
+    const prefix = '/nova-vendor/the-3labs-team/nova-trivia-package'
+    let url = `${prefix}/search`
     if (query !== '') {
-      url = `/trivia/search?query=${query}`
+      url = `${prefix}/search?query=${query}`
     }
     const response = await fetch(url, {
       method: 'GET',
