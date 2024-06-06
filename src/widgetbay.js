@@ -24,7 +24,7 @@ tinymce.PluginManager.add('widgetbay', function (editor, url) {
             type: 'input',
             inputMode: 'text',
             name: 'title',
-            label: 'Custom title',
+            label: 'Custom title (optional)',
             placeholder: 'Add custom title to product'
           }
         ]
