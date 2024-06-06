@@ -19,6 +19,13 @@ tinymce.PluginManager.add('widgetbay', function (editor, url) {
             name: 'link',
             label: 'or add product URL',
             placeholder: 'https://www.amazon.it/B...'
+          },
+          {
+            type: 'input',
+            inputMode: 'text',
+            name: 'title',
+            label: 'Custom title',
+            placeholder: 'Add custom title to product'
           }
         ]
       },
@@ -38,8 +45,9 @@ tinymce.PluginManager.add('widgetbay', function (editor, url) {
 
         const id = data.id ? 'id="' + data.id + '"' : null
         const link = data.link ? 'link="' + data.link + '"' : null
+        const title = data.title ? 'title="' + data.title + '"' : null
 
-        editor.insertContent('[widgetbay ' + (id ?? link) + ']')
+        editor.insertContent('[widgetbay ' + (id ?? link) + ' ' + (title ?? '') + ']')
         api.close()
       }
     })
