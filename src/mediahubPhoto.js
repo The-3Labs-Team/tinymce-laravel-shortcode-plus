@@ -110,6 +110,7 @@ tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
           ]
         }
       })
+      lastImage()
       // Search Image
       searchImages()
       // Insert into editor
@@ -130,6 +131,31 @@ tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
 })
 
 // === FUNCTIONS === //
+async function lastImage (editor) {
+
+  const container = document.querySelector('#card-container')
+
+  const results = await fetch('/nova-vendor/media-hub/media', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }).then(function (response) {
+        if (response.ok) {
+          return response.json()
+        } else {
+          throw new Error('Error in Nova API Request')
+        }
+      }
+        // Debug response
+      ).then(function (data) {
+        console.log(data.data)
+        return data.data
+      })
+
+  sliderDimensions(3)
+  printCards(results, container)
+}
 function searchImages (query) {
   const formQuery = document.querySelector('.tox-dialog__content-js form#query')
   const container = document.querySelector('#card-container')
