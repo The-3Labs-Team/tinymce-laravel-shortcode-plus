@@ -3,18 +3,20 @@
 tinymce.PluginManager.add('searchPublicApi', function (editor, url) {
   const content = `
     <section style="display: flex; align-items: center;">
-        <form method="GET" id="query">
-          <input type="text" placeholder="Search articles" name="q" style="border: 1px solid black; padding: 5px">
+        <form method="GET" id="query" style="width: 100%; display: flex; justify-content: center; align-items: center; flex-direction: column">
+        <div style="margin: 10px 0">
+          <input type="text" placeholder="Search articles" name="q" style="border: 2px solid #eeeeee; padding: 7px 10px; border-radius: 5px;">
+          <p id="search-status" style="font-size: .8rem; margin: 3px 0 0 0;"></p>
+        </div>
                   
           <div id="select-type">
               <input type="radio" id="all" name="type" value="all" checked>
               <label for="all">All</label>
           </div>
         </form>
-        <p id="search-status" style="margin-left: 5px"></p>
     </section>
 
-    <div style="display: flex; width: 100%; background-color: #eeeeee; margin: 10px 0">
+    <div style="display: flex; width: 100%; height: 100%; padding: 6px; background-color: #eeeeee; margin: 0 0 10px 0">
         
         <div style="width: 100%; margin: 10px; padding: 10px; background-color: white;">
             <div id="articles-container"></div>
@@ -46,7 +48,7 @@ tinymce.PluginManager.add('searchPublicApi', function (editor, url) {
     #select-type{
         display: flex;
         justify-content: center;
-        margin: 10px 0;
+        margin: 10px 0 0 0;
     }
     
     #select-type input[type="radio"]{
@@ -54,18 +56,17 @@ tinymce.PluginManager.add('searchPublicApi', function (editor, url) {
     }
     
     #select-type label{
-        background-color: #c7c7c7;
         padding: 5px 10px;
-        border: 1px solid black;
         cursor: pointer;
         text-transform: uppercase;
         color: #959595;
     }
     
     #select-type input[type="radio"]:checked + label{
-        background-color: rgb(14,165,233);
-        color: white;
+        background-color: #eeeeee;
+        color: rgb(14,165,233);
         font-weight: bold;
+        border-radius: 10px 10px 0 0;
     }
   </style>
 `
