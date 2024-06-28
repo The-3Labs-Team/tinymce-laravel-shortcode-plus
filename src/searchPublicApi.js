@@ -4,8 +4,25 @@ tinymce.PluginManager.add('searchPublicApi', function (editor, url) {
   const content = `
     <section style="display: flex; align-items: center;">
         <form method="GET" id="query" style="width: 100%; display: flex; justify-content: center; align-items: center; flex-direction: column">
-        <div style="margin: 10px 0">
-          <input type="text" placeholder="Search articles" name="q" style="border: 2px solid #eeeeee; padding: 7px 10px; border-radius: 5px;">
+        <div style="margin: 10px 0 20px; display: flex; justify-content: center; align-items: end; gap: 10px">
+          <label>
+              <span class="label-span">Search</span>
+              <input type="text" placeholder="Search articles" name="q" style="border: 2px solid #eeeeee; padding: 7px 10px; border-radius: 5px;">
+          </label>
+            
+          <label>
+            <span class="label-span">Order by:</span>
+            <select name="order" style="border: 2px solid #eeeeee; padding: 7px 10px; border-radius: 5px;">
+                    <option value="date">Date</option>
+                    <option value="relevant">Most relevant</option>
+            </select>
+          </label>
+            
+            <button type="submit" style="padding: 10px; border-radius: 100%; cursor: pointer; background-color: rgb(14,165,233); color: white;">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width: 20px; height: 20px; fill: white;">
+                  <path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/>
+              </svg>
+            </button>
         </div>
                   
           <div id="select-type">
@@ -34,6 +51,17 @@ tinymce.PluginManager.add('searchPublicApi', function (editor, url) {
 
     .tox-dialog__body-content {
       min-height: 800px !important;
+    }
+    
+    label{
+      display: block !important;
+    }
+    
+    .label-span{
+      display: block !important;
+      color: #9f9f9f !important;
+      font-weight: 600 !important;
+      font-size: 0.9rem !important;
     }
 
     .search-public-api-title{
@@ -170,6 +198,8 @@ function getArticles () {
     const formData = new FormData(formQuery)
     const query = formData.get('q')
     const type = formData.get('type')
+    const order = formData.get('order')
+
     console.log(type + ' - ' + query)
 
     if (query.length < 3) {
@@ -177,13 +207,13 @@ function getArticles () {
       return
     }
 
-    const articles = await searchArticles(query, type)
+    const articles = await searchArticles(query, type, order)
     printArticles(articles)
   })
 }
 
-function searchArticles (query, type) {
-  const results = fetch(`/vendor/the-3labs-team/laravel-search-public-api/articles/fetch?q=${query}&type=${type}`, {
+function searchArticles (query, type, order) {
+  const results = fetch(`/vendor/the-3labs-team/laravel-search-public-api/articles/fetch?q=${query}&type=${type}&order=${order}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
