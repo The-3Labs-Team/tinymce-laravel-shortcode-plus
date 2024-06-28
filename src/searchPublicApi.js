@@ -6,12 +6,11 @@ tinymce.PluginManager.add('searchPublicApi', function (editor, url) {
         <form method="GET" id="query" style="width: 100%; display: flex; justify-content: center; align-items: center; flex-direction: column">
         <div style="margin: 10px 0">
           <input type="text" placeholder="Search articles" name="q" style="border: 2px solid #eeeeee; padding: 7px 10px; border-radius: 5px;">
-          <p id="search-status" style="font-size: .8rem; margin: 3px 0 0 0;"></p>
         </div>
                   
           <div id="select-type">
               <input type="radio" id="all" name="type" value="all" checked>
-              <label for="all">All</label>
+              <button onclick="document.getElementById('all').checked = true;" type="submit">All</button>
           </div>
         </form>
     </section>
@@ -19,7 +18,9 @@ tinymce.PluginManager.add('searchPublicApi', function (editor, url) {
     <div style="display: flex; width: 100%; height: 100%; padding: 6px; background-color: #eeeeee; margin: 0 0 10px 0">
         
         <div style="width: 100%; margin: 10px; padding: 10px; background-color: white;">
-            <div id="articles-container"></div>
+            <p id="search-status" style="font-size: 1.2rem;">Search query too short</p>
+            <div id="articles-container">
+            </div>
         </div>
 
     </div>
@@ -55,14 +56,14 @@ tinymce.PluginManager.add('searchPublicApi', function (editor, url) {
         display: none;
     }
     
-    #select-type label{
+    #select-type button{
         padding: 5px 10px;
         cursor: pointer;
         text-transform: uppercase;
         color: #959595;
     }
     
-    #select-type input[type="radio"]:checked + label{
+    #select-type input[type="radio"]:checked + button{
         background-color: #eeeeee;
         color: rgb(14,165,233);
         font-weight: bold;
@@ -110,12 +111,11 @@ async function printTypes () {
   const typesContainer = document.querySelector('#select-type')
 
   const types = await getTypes()
-  console.log(types)
 
   Object.keys(types).forEach(type => {
     typesContainer.innerHTML += `
             <input type="radio" id="${type}" name="type" value="${type}">
-            <label for="${type}">${type}</label>
+            <button onclick="document.getElementById('${type}').checked = true;" type="submit">${type}</button>
         `
   })
 }
@@ -150,6 +150,7 @@ function getArticles () {
     const formData = new FormData(formQuery)
     const query = formData.get('q')
     const type = formData.get('type')
+    console.log(type + ' - ' + query)
 
     if (query.length < 3) {
       searchStatus.innerHTML = 'Search query too short'
