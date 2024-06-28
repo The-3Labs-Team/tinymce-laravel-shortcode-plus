@@ -4,20 +4,28 @@ tinymce.PluginManager.add('searchPublicApi', function (editor, url) {
   const content = `
     <section style="display: flex; align-items: center;">
         <form method="GET" id="query">
-          <input type="text" placeholder="Search articles" name="q" style="border: 1px solid black; padding: 5px">
-                  
-          <div id="select-type">
-              <input type="radio" id="all" name="type" value="all" checked>
-              <label for="all">All</label>
-          </div>
+                <input type="text" placeholder="Search articles" name="q" style="border: 1px solid black; padding: 5px">
         </form>
         <p id="search-status" style="margin-left: 5px"></p>
     </section>
 
     <div style="display: flex; width: 100%; background-color: #eeeeee; margin: 10px 0">
-        
+        <!--Tom's Hardware-->
         <div style="width: 100%; margin: 10px; padding: 10px; background-color: white;">
-            <div id="articles-container"></div>
+            <p class="search-public-api-title">Tom's Hardware</p>
+            <div id="article-tomshardware-container"></div>
+        </div>
+
+        <!-- Spaziogames -->
+        <div style="width: 100%; margin: 10px; padding: 10px; background-color: white;">
+            <p class="search-public-api-title">Spaziogames</p>
+            <div id="article-spaziogames-container"></div>
+        </div>
+
+        <!-- Cpop -->
+        <div style="width: 100%; margin: 10px; padding: 10px; background-color: white;">
+            <p class="search-public-api-title">Cpop</p>
+            <div id="article-cpop-container"></div>
         </div>
 
     </div>
@@ -42,31 +50,6 @@ tinymce.PluginManager.add('searchPublicApi', function (editor, url) {
         background-color: #c7c7c7 !important;
         transition: all 0.3s ease-in-out !important;
     }
-    
-    #select-type{
-        display: flex;
-        justify-content: center;
-        margin: 10px 0;
-    }
-    
-    #select-type input[type="radio"]{
-        display: none;
-    }
-    
-    #select-type label{
-        background-color: #c7c7c7;
-        padding: 5px 10px;
-        border: 1px solid black;
-        cursor: pointer;
-        text-transform: uppercase;
-        color: #959595;
-    }
-    
-    #select-type input[type="radio"]:checked + label{
-        background-color: rgb(14,165,233);
-        color: white;
-        font-weight: bold;
-    }
   </style>
 `
 
@@ -75,7 +58,7 @@ tinymce.PluginManager.add('searchPublicApi', function (editor, url) {
     tooltip: 'Add Article from all site',
     onAction: function () {
       tinymce.activeEditor.windowManager.open({
-        title: 'Search Public Article (NEW)',
+        title: 'Search Public Article',
         body: {
           type: 'panel',
           items: [
@@ -86,13 +69,12 @@ tinymce.PluginManager.add('searchPublicApi', function (editor, url) {
           ]
         }
       })
-      printTypes()
       getArticles()
     }
   })
 
   /* Add a icon */
-  editor.ui.registry.addIcon('searchPublicApi', '<svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512"><path d="M168 80c-13.3 0-24 10.7-24 24V408c0 8.4-1.4 16.5-4.1 24H440c13.3 0 24-10.7 24-24V104c0-13.3-10.7-24-24-24H168zM72 480c-39.8 0-72-32.2-72-72V112C0 98.7 10.7 88 24 88s24 10.7 24 24V408c0 13.3 10.7 24 24 24s24-10.7 24-24V104c0-39.8 32.2-72 72-72H440c39.8 0 72 32.2 72 72V408c0 39.8-32.2 72-72 72H72zM176 136c0-13.3 10.7-24 24-24h96c13.3 0 24 10.7 24 24v80c0 13.3-10.7 24-24 24H200c-13.3 0-24-10.7-24-24V136zm200-24h32c13.3 0 24 10.7 24 24s-10.7 24-24 24H376c-13.3 0-24-10.7-24-24s10.7-24 24-24zm0 80h32c13.3 0 24 10.7 24 24s-10.7 24-24 24H376c-13.3 0-24-10.7-24-24s10.7-24 24-24zM200 272H408c13.3 0 24 10.7 24 24s-10.7 24-24 24H200c-13.3 0-24-10.7-24-24s10.7-24 24-24zm0 80H408c13.3 0 24 10.7 24 24s-10.7 24-24 24H200c-13.3 0-24-10.7-24-24s10.7-24 24-24z"/></svg>')
+  editor.ui.registry.addIcon('searchPublicApi', '<svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M168 80c-13.3 0-24 10.7-24 24V408c0 8.4-1.4 16.5-4.1 24H440c13.3 0 24-10.7 24-24V104c0-13.3-10.7-24-24-24H168zM72 480c-39.8 0-72-32.2-72-72V112C0 98.7 10.7 88 24 88s24 10.7 24 24V408c0 13.3 10.7 24 24 24s24-10.7 24-24V104c0-39.8 32.2-72 72-72H440c39.8 0 72 32.2 72 72V408c0 39.8-32.2 72-72 72H72zM176 136c0-13.3 10.7-24 24-24h96c13.3 0 24 10.7 24 24v80c0 13.3-10.7 24-24 24H200c-13.3 0-24-10.7-24-24V136zm200-24h32c13.3 0 24 10.7 24 24s-10.7 24-24 24H376c-13.3 0-24-10.7-24-24s10.7-24 24-24zm0 80h32c13.3 0 24 10.7 24 24s-10.7 24-24 24H376c-13.3 0-24-10.7-24-24s10.7-24 24-24zM200 272H408c13.3 0 24 10.7 24 24s-10.7 24-24 24H200c-13.3 0-24-10.7-24-24s10.7-24 24-24zm0 80H408c13.3 0 24 10.7 24 24s-10.7 24-24 24H200c-13.3 0-24-10.7-24-24s10.7-24 24-24z"/></svg>')
   return {
     getMetadata: function () {
       return {
@@ -105,38 +87,6 @@ tinymce.PluginManager.add('searchPublicApi', function (editor, url) {
 
 // === FUNCTIONS === //
 
-async function printTypes () {
-  const typesContainer = document.querySelector('#select-type')
-
-  const types = await getTypes()
-  console.log(types)
-
-  Object.keys(types).forEach(type => {
-    typesContainer.innerHTML += `
-            <input type="radio" id="${type}" name="type" value="${type}">
-            <label for="${type}">${type}</label>
-        `
-  })
-}
-
-function getTypes (query, type) {
-  const results = fetch('/vendor/the-3labs-team/laravel-search-public-api/get-types', {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      token: 'key'
-    }
-  }).then(function (response) {
-    if (response.ok) {
-      return response.json()
-    } else {
-      throw new Error('Errore nella richiesta')
-    }
-  })
-
-  return results
-}
-
 function getArticles () {
   const formQuery = document.querySelector('.tox-dialog__content-js form#query')
   const searchStatus = document.querySelector('.tox-dialog__content-js #search-status')
@@ -148,20 +98,19 @@ function getArticles () {
 
     const formData = new FormData(formQuery)
     const query = formData.get('q')
-    const type = formData.get('type')
 
     if (query.length < 3) {
       searchStatus.innerHTML = 'Search query too short'
       return
     }
 
-    const articles = await searchArticles(query, type)
+    const articles = await searchArticles(query)
     printArticles(articles)
   })
 }
 
-function searchArticles (query, type) {
-  const results = fetch(`/vendor/the-3labs-team/laravel-search-public-api/articles/fetch?q=${query}&type=${type}`, {
+function searchArticles (query) {
+  const results = fetch(`/vendor/the-3labs-team/laravel-search-public-api/articles/fetch?q=${query}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -180,18 +129,31 @@ function searchArticles (query, type) {
 }
 
 function printArticles (articles) {
-  const articleContainer = document.querySelector('#articles-container')
+  const tomshardwareContainer = document.querySelector('#article-tomshardware-container')
+  const spaziogamesContainer = document.querySelector('#article-spaziogames-container')
+  const cpopContainer = document.querySelector('#article-cpop-container')
   const searchStatus = document.querySelector('.tox-dialog__content-js #search-status')
 
   searchStatus.innerHTML = ''
-
-  if (articles.length > 0) {
-    articles.forEach(article => {
-      articleContainer.innerHTML += generateArticlesCardHtml(article)
+  console.log(articles.tomshardware.length)
+  // Tom's Hardware
+  articles.tomshardware !== null && articles.tomshardware.length > 0
+    ? articles.tomshardware.forEach(article => {
+      tomshardwareContainer.innerHTML += generateArticlesCardHtml(article)
     })
-  } else {
-    articleContainer.innerHTML = '<p>No results</p>'
-  }
+    : tomshardwareContainer.innerHTML = '<p>No results</p>'
+    // SpazioGames
+  articles.spaziogames !== null && articles.spaziogames.length > 0
+    ? articles.spaziogames.forEach(article => {
+      spaziogamesContainer.innerHTML += generateArticlesCardHtml(article)
+    })
+    : spaziogamesContainer.innerHTML = '<p>No results</p>'
+    // Cpop
+  articles.cpop !== null && articles.cpop.length > 0
+    ? articles.cpop.forEach(article => {
+      cpopContainer.innerHTML += generateArticlesCardHtml(article)
+    })
+    : cpopContainer.innerHTML = '<p>No results</p>'
 
   addArticleLinkOnEditor()
 }
@@ -203,7 +165,6 @@ function generateArticlesCardHtml (article) {
         <input type="hidden" name="url" value="${article.url}">
         <button type="submit">
             <span style="font-size: 1.2rem; font-weight: bold">${article.title}</span>
-            <span style="font-size: 1rem; font-weight: normal; color: rgba(54,54,54,0.75)">(${article.site})</span>
             <p>
                 ${article.author}
                 <br>
@@ -246,7 +207,11 @@ function addArticleLinkOnEditor () {
 }
 
 function resetArticles () {
-  const articleContainer = document.querySelector('#articles-container')
+  const tomshardwareContainer = document.querySelector('#article-tomshardware-container')
+  const spaziogamesContainer = document.querySelector('#article-spaziogames-container')
+  const cpopContainer = document.querySelector('#article-cpop-container')
 
-  articleContainer.innerHTML = ''
+  tomshardwareContainer.innerHTML = ''
+  spaziogamesContainer.innerHTML = ''
+  cpopContainer.innerHTML = ''
 }
