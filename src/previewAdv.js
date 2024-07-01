@@ -1,7 +1,6 @@
 /* global tinymce */
 
 tinymce.PluginManager.add('previewAdv', (editor, url) => {
-
   editor.on('init', function () {
     const params = editor.getParam('previewAdv')
     const thresholds = params.thresholds
@@ -53,6 +52,18 @@ tinymce.PluginManager.add('previewAdv', (editor, url) => {
         editor.selection.moveToBookmark(bookmark)
         editor.focus()
       }, 0)
+    })
+
+    editor.on('SaveContent', function (e) {
+      const tempDiv = document.createElement('div')
+      tempDiv.innerHTML = e.content
+
+      const advDivs = tempDiv.querySelectorAll('.adv-preview')
+      advDivs.forEach(function (div) {
+        div.remove()
+      })
+
+      e.content = tempDiv.innerHTML
     })
   })
 
