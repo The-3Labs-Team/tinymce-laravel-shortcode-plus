@@ -8,7 +8,51 @@ tinymce.PluginManager.add('previewAdv', (editor, url) => {
     let pCount = 0 // Counter for <p> tags
     let advCount = 1 // Counter for adv divs
 
-    // Funzione per inserire le div di pubblicità
+    insertAdv()
+
+    // === TIMER ===
+    let typingTimer
+    const typingDebounce = 1000 // 1 second
+
+    // === EDITOR ACTIONS ===
+    // editor.on('change', function () {
+    //   const bookmark = editor.selection.getBookmark(2, true)
+    //
+    //   pCount = 0
+    //   advCount = 1
+    //   if (typing) {
+    //     return
+    //   }
+    //   insertAdv()
+    //
+    //   setTimeout(function () {
+    //     editor.selection.moveToBookmark(bookmark)
+    //     editor.focus()
+    //   }, 0)
+    // })
+
+    editor.on('SaveContent', function (e) {
+      const tempDiv = document.createElement('div')
+      tempDiv.innerHTML = e.content
+
+      const advDivs = tempDiv.querySelectorAll('.adv-preview')
+      advDivs.forEach(function (div) {
+        div.remove()
+      })
+
+      e.content = tempDiv.innerHTML
+    })
+
+    editor.on('keydown', function () {
+      clearTimeout(typingTimer)
+    })
+
+    editor.on('keyup', function () {
+      clearTimeout(typingTimer)
+      typingTimer = setTimeout(addAdvInEditor, typingDebounce)
+    })
+
+    // === FUNCTIONS ===
     function insertAdv () {
       const advDivs = editor.getBody().querySelectorAll('.adv-preview')
       for (let i = 0; i < advDivs.length; i++) {
@@ -39,32 +83,23 @@ tinymce.PluginManager.add('previewAdv', (editor, url) => {
       }
     }
 
-    insertAdv()
-
-    editor.on('change', function () {
-      const bookmark = editor.selection.getBookmark(2, true)
+    function addAdvInEditor () {
 
       pCount = 0
       advCount = 1
+
+      // const bookmark = editor.selection.getBookmark(2, true)
       insertAdv()
 
       setTimeout(function () {
-        editor.selection.moveToBookmark(bookmark)
         editor.focus()
+        const nextNode = editor.selection.getNode().nextSibling
+
+        if (nextNode) {
+          editor.selection.setCursorLocation(nextNode, -1)
+        }
       }, 0)
-    })
-
-    editor.on('SaveContent', function (e) {
-      const tempDiv = document.createElement('div')
-      tempDiv.innerHTML = e.content
-
-      const advDivs = tempDiv.querySelectorAll('.adv-preview')
-      advDivs.forEach(function (div) {
-        div.remove()
-      })
-
-      e.content = tempDiv.innerHTML
-    })
+    }
   })
 
   return {
