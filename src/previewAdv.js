@@ -1,12 +1,10 @@
 /* global tinymce */
 
 tinymce.PluginManager.add('previewAdv', (editor, url) => {
+
   editor.on('init', function () {
-    const thresholds = {
-      1: 0,
-      2: 2,
-      3: 8
-    }
+    const params = editor.getParam('previewAdv')
+    const thresholds = params.thresholds
 
     let pCount = 0 // Counter for <p> tags
     let advCount = 1 // Counter for adv divs
@@ -45,9 +43,16 @@ tinymce.PluginManager.add('previewAdv', (editor, url) => {
     insertAdv()
 
     editor.on('change', function () {
+      const bookmark = editor.selection.getBookmark(2, true)
+
       pCount = 0
       advCount = 1
       insertAdv()
+
+      setTimeout(function () {
+        editor.selection.moveToBookmark(bookmark)
+        editor.focus()
+      }, 0)
     })
   })
 
