@@ -19,6 +19,7 @@ jobs:
             https://cdn.jsdelivr.net/gh/The-3Labs-Team/tinymce-laravel-shortcode-plus@1/src/instagram.js
             https://cdn.jsdelivr.net/gh/The-3Labs-Team/tinymce-laravel-shortcode-plus@1/src/leggianche.js
             https://cdn.jsdelivr.net/gh/The-3Labs-Team/tinymce-laravel-shortcode-plus@1/src/mediahubPhoto.js
+            https://cdn.jsdelivr.net/gh/The-3Labs-Team/tinymce-laravel-shortcode-plus@1/src/previewAdv.js
             https://cdn.jsdelivr.net/gh/The-3Labs-Team/tinymce-laravel-shortcode-plus@1/src/product.js
             https://cdn.jsdelivr.net/gh/The-3Labs-Team/tinymce-laravel-shortcode-plus@1/src/reddit.js
             https://cdn.jsdelivr.net/gh/The-3Labs-Team/tinymce-laravel-shortcode-plus@1/src/searchPublicApi.js
