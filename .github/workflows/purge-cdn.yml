@@ -1,0 +1,34 @@
+name: Flush Cache
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  purge-jsdelivr-cache:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: gacts/purge-jsdelivr-cache@v1
+        with:
+          url: |
+            https://cdn.jsdelivr.net/gh/The-3Labs-Team/tinymce-laravel-shortcode-plus@1/src/button.js
+            https://cdn.jsdelivr.net/gh/The-3Labs-Team/tinymce-laravel-shortcode-plus@1/src/distico.js
+            https://cdn.jsdelivr.net/gh/The-3Labs-Team/tinymce-laravel-shortcode-plus@1/src/facebook.js
+            https://cdn.jsdelivr.net/gh/The-3Labs-Team/tinymce-laravel-shortcode-plus@1/src/faq.js
+            https://cdn.jsdelivr.net/gh/The-3Labs-Team/tinymce-laravel-shortcode-plus@1/src/index.js
+            https://cdn.jsdelivr.net/gh/The-3Labs-Team/tinymce-laravel-shortcode-plus@1/src/instagram.js
+            https://cdn.jsdelivr.net/gh/The-3Labs-Team/tinymce-laravel-shortcode-plus@1/src/leggianche.js
+            https://cdn.jsdelivr.net/gh/The-3Labs-Team/tinymce-laravel-shortcode-plus@1/src/mediahubPhoto.js
+            https://cdn.jsdelivr.net/gh/The-3Labs-Team/tinymce-laravel-shortcode-plus@1/src/product.js
+            https://cdn.jsdelivr.net/gh/The-3Labs-Team/tinymce-laravel-shortcode-plus@1/src/reddit.js
+            https://cdn.jsdelivr.net/gh/The-3Labs-Team/tinymce-laravel-shortcode-plus@1/src/searchPublicApi.js
+            https://cdn.jsdelivr.net/gh/The-3Labs-Team/tinymce-laravel-shortcode-plus@1/src/shortcodeList.js
+            https://cdn.jsdelivr.net/gh/The-3Labs-Team/tinymce-laravel-shortcode-plus@1/src/spoiler.js
+            https://cdn.jsdelivr.net/gh/The-3Labs-Team/tinymce-laravel-shortcode-plus@1/src/survey.js
+            https://cdn.jsdelivr.net/gh/The-3Labs-Team/tinymce-laravel-shortcode-plus@1/src/tiktok.js
+            https://cdn.jsdelivr.net/gh/The-3Labs-Team/tinymce-laravel-shortcode-plus@1/src/tmdb.js
+            https://cdn.jsdelivr.net/gh/The-3Labs-Team/tinymce-laravel-shortcode-plus@1/src/trivia.js
+            https://cdn.jsdelivr.net/gh/The-3Labs-Team/tinymce-laravel-shortcode-plus@1/src/twitter.js
+            https://cdn.jsdelivr.net/gh/The-3Labs-Team/tinymce-laravel-shortcode-plus@1/src/widgetbay.js
+            https://cdn.jsdelivr.net/gh/The-3Labs-Team/tinymce-laravel-shortcode-plus@1/src/youtube.js
+            
