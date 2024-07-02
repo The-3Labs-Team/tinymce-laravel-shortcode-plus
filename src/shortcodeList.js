@@ -88,34 +88,19 @@ tinymce.PluginManager.add('shortcodeList', function (editor, url) {
       description: 'Insert a tiktok frame'
     },
     {
-      title: 'Movie - CulturaPop*',
-      code: '[movie id="1"]',
-      description: 'Insert a movie'
-    },
-    {
-      title: 'TV - CulturaPop*',
-      code: '[tv id="1"]',
-      description: 'Insert a TV show'
-    },
-    {
-      title: 'Video - CulturaPop*',
-      code: '[video id="1"]',
-      description: 'Insert a video'
-    },
-    {
-      title: 'Quiz - CulturaPop*',
-      code: '[quiz id="1"]',
-      description: 'Insert a quiz'
-    },
-    {
-      title: 'Challenge - CulturaPop*',
-      code: '[challenge id="1"]',
-      description: 'Insert a challenge'
-    },
-    {
       title: 'Merchandise Product - Spaziogames*',
       code: '[product id="1,2,3" amztag="nosp-guide" ebaycampaignid="123456"]',
       description: 'Insert a Merchandise Product'
+    },
+    {
+      title: 'Survey',
+      code: '[survey id="1"]',
+      description: 'Insert a survey in the article'
+    },
+    {
+      title: 'Products',
+      code: '[products]',
+      description: 'Move the products block in BestOf article - Tom\'s Hardware* Spaziogames*'
     }
   ]
 
