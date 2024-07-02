@@ -65,7 +65,7 @@ tinymce.PluginManager.add('searchPublicApi', function (editor, url) {
     }
 
     .search-public-api-title{
-      font-size: 1.3rem !important;
+      font-size: 1rem !important;
       font-weight: bold !important;
       margin: 0 0 4px 0 !important;
       color: rgb(14,165,233) !important;
