@@ -103,6 +103,7 @@ tinymce.PluginManager.add('shortcodeList', function (editor, url) {
       description: 'Move the products block in BestOf article - Tom\'s Hardware* Spaziogames*'
     }
   ]
+  shortcodes.sort((a, b) => a.title.localeCompare(b.title))
 
   const content = `
     <div>
