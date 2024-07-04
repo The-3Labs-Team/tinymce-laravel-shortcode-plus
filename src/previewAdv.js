@@ -34,6 +34,7 @@ tinymce.PluginManager.add('previewAdv', (editor, url) => {
   editor.on('init', function () {
     const params = editor.getParam('previewAdv')
     const thresholds = params.thresholds
+    const blacklist = params.blacklist
 
     let pCount = 0 // Counter for <p> tags
     let advCount = 1 // Counter for adv divs
@@ -69,10 +70,12 @@ tinymce.PluginManager.add('previewAdv', (editor, url) => {
 
     // === FUNCTIONS ===
     function insertAdv () {
+      // REMOVE OLD ADV FOR LOAD NEW
       const advDivs = editor.getBody().querySelectorAll('.adv-preview')
       for (let i = 0; i < advDivs.length; i++) {
         advDivs[i].remove()
       }
+
       const body = editor.getBody()
       const paragraphs = body.getElementsByTagName('p')
 
@@ -81,6 +84,30 @@ tinymce.PluginManager.add('previewAdv', (editor, url) => {
           if (paragraphs[i].nextElementSibling && paragraphs[i].nextElementSibling.classList.contains('adv-preview')) {
             continue
           }
+
+          // === BLACKLIST ===
+          const bfBlacklist = blacklist.before.slice(1, -1).split('|')
+          const afBlacklist = blacklist.after.slice(1, -1).split('|')
+
+          bfBlacklist.push('<br', '\\[[^\\]]')
+          afBlacklist.push('<br', '\\[[^\\]]')
+
+          // AFTER BEFORE
+          // if (bfBlacklist.some(item => paragraphs[i].innerHTML.includes(item))) {
+          //   continue
+          // }
+          if (bfBlacklist.some(item => new RegExp(item).test(paragraphs[i].innerHTML))) {
+            continue
+          }
+
+          // AFTER BLACKLIST
+          // if (afBlacklist.some(item => paragraphs[i + 1].innerHTML.includes(item))) {
+          //   continue
+          // }
+          if (afBlacklist.some(item => new RegExp(item).test(paragraphs[i + 1].innerHTML))) {
+            continue
+          }
+          // === END BLACKLIST ===
 
           const div = editor.dom.create('div', { class: 'adv-preview', contenteditable: 'false' })
           div.style.backgroundColor = '#f3f3f3'
