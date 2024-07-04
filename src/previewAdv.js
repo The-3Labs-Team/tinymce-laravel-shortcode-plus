@@ -1,6 +1,36 @@
 /* global tinymce */
 
 tinymce.PluginManager.add('previewAdv', (editor, url) => {
+  let isEnable = true
+
+  editor.ui.registry.addToggleButton('previewAdv', {
+    icon: 'preview',
+    tooltip: 'Enable Preview Adv',
+    onAction: async (_) => {
+      isEnable = !isEnable
+      togglePreviewAdv(isEnable)
+    }
+  })
+
+  function togglePreviewAdv (isEnable) {
+    const advDivs = editor.getBody().querySelectorAll('.adv-preview')
+
+    for (let i = 0; i < advDivs.length; i++) {
+      advDivs[i].style.display = isEnable ? 'block' : 'none'
+    }
+
+    // Update button state
+    setTimeout(() => {
+      const toolbar = editor.getContainer().querySelector('.tox-toolbar-overlord')
+      const btn = toolbar.querySelector('button[aria-label="Enable Preview Adv"]')
+      if (isEnable) {
+        btn.classList.add('tox-tbtn--enabled')
+      } else {
+        btn.classList.remove('tox-tbtn--enabled')
+      }
+    }, 0)
+  }
+
   editor.on('init', function () {
     const params = editor.getParam('previewAdv')
     const thresholds = params.thresholds
@@ -9,28 +39,13 @@ tinymce.PluginManager.add('previewAdv', (editor, url) => {
     let advCount = 1 // Counter for adv divs
 
     insertAdv()
+    togglePreviewAdv(isEnable)
 
     // === TIMER ===
     let typingTimer
     const typingDebounce = 1000 // 1 second
 
     // === EDITOR ACTIONS ===
-    // editor.on('change', function () {
-    //   const bookmark = editor.selection.getBookmark(2, true)
-    //
-    //   pCount = 0
-    //   advCount = 1
-    //   if (typing) {
-    //     return
-    //   }
-    //   insertAdv()
-    //
-    //   setTimeout(function () {
-    //     editor.selection.moveToBookmark(bookmark)
-    //     editor.focus()
-    //   }, 0)
-    // })
-
     editor.on('SaveContent', function (e) {
       const tempDiv = document.createElement('div')
       tempDiv.innerHTML = e.content
@@ -84,7 +99,6 @@ tinymce.PluginManager.add('previewAdv', (editor, url) => {
     }
 
     function addAdvInEditor () {
-
       pCount = 0
       advCount = 1
 
