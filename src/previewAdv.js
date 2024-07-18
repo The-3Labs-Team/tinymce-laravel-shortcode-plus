@@ -1,7 +1,7 @@
 /* global tinymce */
 
 tinymce.PluginManager.add('previewAdv', (editor, url) => {
-  let isEnable = true
+  let isEnable = false
 
   editor.ui.registry.addToggleButton('previewAdv', {
     icon: 'preview',
