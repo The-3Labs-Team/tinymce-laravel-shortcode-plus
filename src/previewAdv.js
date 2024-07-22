@@ -117,7 +117,7 @@ tinymce.PluginManager.add('previewAdv', (editor, url) => {
           div.style.border = '1px solid #ccc'
           div.style.textAlign = 'center'
           div.style.margin = '10px 0'
-          div.innerHTML = 'Qui ci finiscono le ADV'
+          div.innerHTML = 'Spazio riservato per la pubblicità'
           editor.dom.insertAfter(div, paragraphs[i])
           advCount++
         }
