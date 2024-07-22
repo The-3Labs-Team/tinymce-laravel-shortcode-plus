@@ -17,3 +17,25 @@ For use TMDB you need to define the API key and language as follows:
  ];
 // ...
 ```
+## Preview ADV
+
+In your observer, add:
+
+```php
+    public function updating(Article $article): void
+    {
+        $this->removePreviewAdv($article);
+    }
+
+    public function creating(Article $article): void
+    {
+        $this->removePreviewAdv($article);
+    }
+
+    protected function removePreviewAdv(Article $article): void
+    {
+        $article->content = preg_replace('/<div class="adv-preview"[\s\S]*?<\/div>/', '', $article->content);
+    }
+```
+
+this will remove the preview adv from the content before saving it.

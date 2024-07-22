@@ -48,17 +48,17 @@ tinymce.PluginManager.add('previewAdv', (editor, url) => {
     const typingDebounce = 1000 // 1 second
 
     // === EDITOR ACTIONS ===
-    editor.on('SaveContent', function (e) {
-      const tempDiv = document.createElement('div')
-      tempDiv.innerHTML = e.content
-
-      const advDivs = tempDiv.querySelectorAll('.adv-preview')
-      advDivs.forEach(function (div) {
-        div.remove()
-      })
-
-      e.content = tempDiv.innerHTML
-    })
+    // editor.on('SaveContent', function (e) {
+    //   const tempDiv = document.createElement('div')
+    //   tempDiv.innerHTML = e.content
+    //
+    //   const advDivs = tempDiv.querySelectorAll('.adv-preview')
+    //   advDivs.forEach(function (div) {
+    //     div.remove()
+    //   })
+    //
+    //   e.content = tempDiv.innerHTML
+    // })
 
     editor.on('keydown', function () {
       clearTimeout(typingTimer)
