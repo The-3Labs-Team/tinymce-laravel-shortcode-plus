@@ -13,27 +13,8 @@ tinymce.PluginManager.add('previewAdv', (editor, url) => {
     }
   })
 
-  function togglePreviewAdv(isEnable) {
-    const advDivs = editor.getBody().querySelectorAll('.adv-preview')
-
-    for (let i = 0; i < advDivs.length; i++) {
-      advDivs[i].style.display = isEnable ? 'block' : 'none'
-    }
-
-    // Update button state
-    setTimeout(() => {
-      const toolbar = editor.getContainer().querySelector('.tox-toolbar-overlord')
-      const btn = toolbar.querySelector('button[aria-label="Enable Preview Adv"]')
-      if (isEnable) {
-        btn.classList.add('tox-tbtn--enabled')
-      } else {
-        btn.classList.remove('tox-tbtn--enabled')
-      }
-    }, 0)
-  }
-
   editor.on('init', function () {
-    const params = editor.getParam('previewAdv')
+    const params = editor.getParam('previewAdv') // Get the parameters from config file
     const thresholds = params.thresholds
     const blacklist = params.blacklist
 
@@ -48,18 +29,6 @@ tinymce.PluginManager.add('previewAdv', (editor, url) => {
     const typingDebounce = 1000 // 1 second
 
     // === EDITOR ACTIONS ===
-    // editor.on('SaveContent', function (e) {
-    //   const tempDiv = document.createElement('div')
-    //   tempDiv.innerHTML = e.content
-    //
-    //   const advDivs = tempDiv.querySelectorAll('.adv-preview')
-    //   advDivs.forEach(function (div) {
-    //     div.remove()
-    //   })
-    //
-    //   e.content = tempDiv.innerHTML
-    // })
-
     editor.on('keydown', function () {
       clearTimeout(typingTimer)
     })
@@ -70,12 +39,9 @@ tinymce.PluginManager.add('previewAdv', (editor, url) => {
     })
 
     // === FUNCTIONS ===
-    function insertAdv() {
+    function insertAdv () {
       // REMOVE OLD ADV FOR LOAD NEW
-      const advDivs = editor.getBody().querySelectorAll('.adv-preview')
-      for (let i = 0; i < advDivs.length; i++) {
-        advDivs[i].remove()
-      }
+      removeAdvInEditor()
 
       const body = editor.getBody()
       const paragraphs = body.getElementsByTagName('p')
@@ -94,18 +60,12 @@ tinymce.PluginManager.add('previewAdv', (editor, url) => {
           afBlacklist.push('<br', '\\[[^\\]]')
 
           // AFTER BEFORE
-          // if (bfBlacklist.some(item => paragraphs[i].innerHTML.includes(item))) {
-          //   continue
-          // }
           if (bfBlacklist.some(item => new RegExp(item).test(paragraphs[i].innerHTML))) {
             continue
           }
 
           // AFTER BLACKLIST
-          // if (afBlacklist.some(item => paragraphs[i + 1].innerHTML.includes(item))) {
-          //   continue
-          // }
-          if (afBlacklist.some(item => new RegExp(item).test(paragraphs[i + 1].innerHTML))) {
+          if (paragraphs[i + 1] && afBlacklist.some(item => new RegExp(item).test(paragraphs[i + 1].innerHTML))) {
             continue
           }
           // === END BLACKLIST ===
@@ -125,7 +85,6 @@ tinymce.PluginManager.add('previewAdv', (editor, url) => {
         pCount++
       }
     }
-
     function addAdvInEditor () {
       pCount = 0
       advCount = 1
@@ -143,6 +102,31 @@ tinymce.PluginManager.add('previewAdv', (editor, url) => {
       }, 0)
     }
   })
+
+  function togglePreviewAdv (isEnable) {
+    const advDivs = editor.getBody().querySelectorAll('.adv-preview')
+
+    for (let i = 0; i < advDivs.length; i++) {
+      advDivs[i].style.display = isEnable ? 'block' : 'none'
+    }
+
+    // Update button state
+    setTimeout(() => {
+      const toolbar = editor.getContainer().querySelector('.tox-toolbar-overlord')
+      const btn = toolbar.querySelector('button[aria-label="Enable Preview Adv"]')
+      if (isEnable) {
+        btn.classList.add('tox-tbtn--enabled')
+      } else {
+        btn.classList.remove('tox-tbtn--enabled')
+      }
+    }, 0)
+  }
+  function removeAdvInEditor () {
+    const advDivs = editor.getBody().querySelectorAll('.adv-preview')
+    for (let i = 0; i < advDivs.length; i++) {
+      advDivs[i].remove()
+    }
+  }
 
   return {
     getMetadata: () => ({
