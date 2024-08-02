@@ -34,7 +34,7 @@ tinymce.PluginManager.add('shortcodeList', function (editor, url) {
     },
     {
       title: 'Widgetbay',
-      code: '[widgetbay id="optional" link="optional"]',
+      code: '[widgetbay id="optional" link="optional" forceLink="optional"]',
       description: 'Insert a widgetbay iframe. You can use the id or the link, but not both. You can use multiple links separated by a comma. - link="https://link1.com,https://link2.com'
     },
     {

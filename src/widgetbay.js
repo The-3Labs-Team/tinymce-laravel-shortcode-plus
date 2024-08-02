@@ -26,11 +26,16 @@ tinymce.PluginManager.add('widgetbay', function (editor, url) {
                 </div>
 
             </label>
-                        
-
+                                    
             <label>
                 <span class="label-span">Custom title (optional)</span>
                 <input type="text" name="widget-title" style="border: 2px solid #eeeeee; padding: 7px 10px; border-radius: 5px;">
+            </label>
+            
+            <label>
+                <span class="label-span">Force Link (optional)</span>
+                <input type="text" name="widget-force-link" style="border: 2px solid #eeeeee; padding: 7px 10px; border-radius: 5px;">
+                <p style="color: #9f9f9f; font-size: 0.8rem;">It only works on single product</p>
             </label>
             
             <button type="submit" style="padding: 10px; border-radius: .2rem; cursor: pointer; background-color: rgb(14,165,233); color: white;">
@@ -133,8 +138,9 @@ function generateShortcode () {
     const parsedTitle = formData.get('widget-title') ? 'title="' + formData.get('widget-title') + '" ' : ''
     const parsedLink = link ? 'link="' + link + '" ' : ' '
     const parsedId = formData.get('widget-id') ? 'id="' + formData.get('widget-id') + '"' : ' '
+    const parsedForceLink = formData.get('widget-force-link') ? 'forceLink="' + formData.get('widget-force-link') + '" ' : ' '
 
-    const content = '[widgetbay ' + parsedId + parsedLink + parsedTitle + ']'
+    const content = '[widgetbay ' + parsedId + parsedLink + parsedTitle + parsedForceLink + ']'
 
     tinymce.activeEditor.insertContent(content)
     tinymce.activeEditor.windowManager.close()
