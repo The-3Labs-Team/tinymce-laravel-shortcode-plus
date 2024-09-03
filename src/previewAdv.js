@@ -98,6 +98,7 @@ tinymce.PluginManager.add('previewAdv', (editor, url) => {
           continue
         }
         // === END BLACKLIST ===
+        console.log(paragraphs[i], pCount)
 
         const div = editor.dom.create('div', { class: 'adv-preview', contenteditable: 'false' })
         div.style.backgroundColor = '#f3f3f3'
@@ -107,7 +108,7 @@ tinymce.PluginManager.add('previewAdv', (editor, url) => {
         div.style.textAlign = 'center'
         div.style.margin = '10px 0'
         div.innerHTML = 'Spazio riservato per la pubblicità'
-        editor.dom.insertAfter(div, paragraphs[i])
+        paragraphs[i].insertBefore(div, paragraphs[i].firstChild)
         advCount++
       }
 
