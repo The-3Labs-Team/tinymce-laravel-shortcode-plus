@@ -63,24 +63,29 @@ tinymce.PluginManager.add('previewAdv', (editor, url) => {
 
   // === FUNCTIONS ===
   function insertAdv () {
+    let pCount = 0
+    let advCount = 1
+
     const params = editor.getParam('previewAdv') // Get the parameters from config file
     let thresholds = params.thresholds
     thresholds = Object.keys(thresholds).sort((a, b) => a - b).reduce((acc, key, index) => {
       acc[index + 1] = thresholds[key]
       return acc
     }, {})
-    thresholds = Array.from(new Set(Object.values(thresholds)))
 
     const blacklist = params.blacklist
 
     // REMOVE OLD ADV FOR LOAD NEW
     removeAdvInEditor()
     const body = editor.getBody()
-    let paragraphs = body.getElementsByTagName('p')
-    paragraphs = Array.from(paragraphs)
+    const paragraphs = body.getElementsByTagName('p')
 
-    paragraphs.forEach((paragraph, index) => {
-      if (thresholds.includes(index)) {
+    for (let i = 1; i < paragraphs.length; i++) {
+      if (i === thresholds[advCount]) {
+        if (paragraphs[i].nextElementSibling && paragraphs[i].nextElementSibling.classList.contains('adv-preview')) {
+          continue
+        }
+
         // === BLACKLIST ===
         const bfBlacklist = blacklist.before.slice(1, -1).split('|')
         const afBlacklist = blacklist.after.slice(1, -1).split('|')
@@ -88,8 +93,16 @@ tinymce.PluginManager.add('previewAdv', (editor, url) => {
         bfBlacklist.push('<br', '\\[[^\\]]')
         afBlacklist.push('<br', '\\[[^\\]]')
 
-        // const beforeElement = paragraph.previousElementSibling
-        const afterElement = paragraph.nextElementSibling
+        // AFTER BEFORE
+        if (bfBlacklist.some(item => new RegExp(item).test(paragraphs[i].innerHTML))) {
+          continue
+        }
+
+        // AFTER BLACKLIST
+        if (paragraphs[i + 1] && afBlacklist.some(item => new RegExp(item).test(paragraphs[i + 1].innerHTML))) {
+          continue
+        }
+        // === END BLACKLIST ===
 
         const div = editor.dom.create('div', { class: 'adv-preview', contenteditable: 'false' })
         div.style.backgroundColor = '#f3f3f3'
@@ -99,22 +112,13 @@ tinymce.PluginManager.add('previewAdv', (editor, url) => {
         div.style.textAlign = 'center'
         div.style.margin = '10px 0'
         div.innerHTML = 'Spazio riservato per la pubblicità'
-
-        // // BEFORE BEFORE
-        // if (beforeElement && bfBlacklist.some(item => new RegExp(item).test(beforeElement.innerHTML))) {
-        //   return
-        // }
-
-        // AFTER BLACKLIST
-        if (afterElement && afBlacklist.some(item => new RegExp(item).test(afterElement.innerHTML))) {
-          return
-        }
-        // === END BLACKLIST ===
-
-        // se non c'è un elemento successivo in black list o anche precedente in black list
-        editor.dom.insertAfter(div, paragraph)
+        console.log(paragraphs[i])
+        editor.dom.insertAfter(div, paragraphs[i])
+        advCount++
       }
-    })
+
+      // pCount++
+    }
   }
   function addAdvInEditor () {
     // const bookmark = editor.selection.getBookmark(2, true)
