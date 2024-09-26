@@ -101,14 +101,12 @@ tinymce.PluginManager.add('previewAdv', (editor, url) => {
         div.style.margin = '10px 0'
         div.innerHTML = 'Spazio riservato per la pubblicità'
 
-        // // BEFORE BEFORE
+        // BEFORE BLACKLIST
         if (beforeElement && bfBlacklist.some(item => new RegExp(item).test(beforeElement.innerHTML))) {
-          // thresholds[insertedAdv] = thresholds[insertedAdv] + 2
-          // console.log(thresholds)
           return
         }
 
-        // AFTER BLACKLIST
+        // AFTER BLACKLIST TODO: Far uscire l'adv e non eliminarlo dopo il blacklist
         if (afterElement && afBlacklist.some(item => new RegExp(item).test(afterElement.innerHTML))) {
           const nextElement = afterElement.nextElementSibling
           const nextNextElement = nextElement.nextElementSibling
@@ -117,6 +115,7 @@ tinymce.PluginManager.add('previewAdv', (editor, url) => {
             (nextElement && afBlacklist.some(item => new RegExp(item).test(nextElement.innerHTML))) ||
             (nextNextElement && afBlacklist.some(item => new RegExp(item).test(nextNextElement.innerHTML)))
           ) {
+            thresholds[insertedAdv] = thresholds[insertedAdv] + 2
             return
           } else {
             editor.dom.insertAfter(div, nextElement)
@@ -125,7 +124,6 @@ tinymce.PluginManager.add('previewAdv', (editor, url) => {
         }
         // === END BLACKLIST ===
 
-        // se non c'è un elemento successivo in black list o anche precedente in black list
         editor.dom.insertAfter(div, paragraph)
         insertedAdv++
       }
