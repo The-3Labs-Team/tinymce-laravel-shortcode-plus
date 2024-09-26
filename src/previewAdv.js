@@ -79,6 +79,7 @@ tinymce.PluginManager.add('previewAdv', (editor, url) => {
     let paragraphs = body.getElementsByTagName('p')
     paragraphs = Array.from(paragraphs)
 
+    let insertedAdv = 0
     paragraphs.forEach((paragraph, index) => {
       if (thresholds.includes(index)) {
         // === BLACKLIST ===
@@ -88,7 +89,7 @@ tinymce.PluginManager.add('previewAdv', (editor, url) => {
         bfBlacklist.push('<br', '\\[[^\\]]')
         afBlacklist.push('<br', '\\[[^\\]]')
 
-        // const beforeElement = paragraph.previousElementSibling
+        const beforeElement = paragraph.previousElementSibling
         const afterElement = paragraph.nextElementSibling
 
         const div = editor.dom.create('div', { class: 'adv-preview', contenteditable: 'false' })
@@ -101,18 +102,32 @@ tinymce.PluginManager.add('previewAdv', (editor, url) => {
         div.innerHTML = 'Spazio riservato per la pubblicità'
 
         // // BEFORE BEFORE
-        // if (beforeElement && bfBlacklist.some(item => new RegExp(item).test(beforeElement.innerHTML))) {
-        //   return
-        // }
+        if (beforeElement && bfBlacklist.some(item => new RegExp(item).test(beforeElement.innerHTML))) {
+          // thresholds[insertedAdv] = thresholds[insertedAdv] + 2
+          // console.log(thresholds)
+          return
+        }
 
         // AFTER BLACKLIST
         if (afterElement && afBlacklist.some(item => new RegExp(item).test(afterElement.innerHTML))) {
+          const nextElement = afterElement.nextElementSibling
+          const nextNextElement = nextElement.nextElementSibling
+
+          if (
+            (nextElement && afBlacklist.some(item => new RegExp(item).test(nextElement.innerHTML))) ||
+            (nextNextElement && afBlacklist.some(item => new RegExp(item).test(nextNextElement.innerHTML)))
+          ) {
+            return
+          } else {
+            editor.dom.insertAfter(div, nextElement)
+          }
           return
         }
         // === END BLACKLIST ===
 
         // se non c'è un elemento successivo in black list o anche precedente in black list
         editor.dom.insertAfter(div, paragraph)
+        insertedAdv++
       }
     })
   }
