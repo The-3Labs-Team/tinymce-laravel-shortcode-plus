@@ -61,6 +61,7 @@ tinymce.PluginManager.add('previewAdv', (editor, url) => {
    */
   function insertAdv () {
     const params = editor.getParam('previewAdv') // Get the parameters from config file
+
     let thresholds = params.thresholds
     thresholds = Object.keys(thresholds).sort((a, b) => a - b).reduce((acc, key, index) => {
       acc[index + 1] = thresholds[key]
@@ -68,27 +69,32 @@ tinymce.PluginManager.add('previewAdv', (editor, url) => {
     }, {})
     thresholds = Array.from(new Set(Object.values(thresholds)))
 
-    const blacklist = params.blacklist
-
-    // REMOVE OLD ADV FOR LOAD NEW
     removeAdvInEditor()
     const body = editor.getBody()
     let paragraphs = body.getElementsByTagName('p')
     paragraphs = Array.from(paragraphs)
 
-    let insertedAdv = 0
     paragraphs.forEach((paragraph, index) => {
+      // === BLACKLIST ===
+      const blacklist = params.blacklist.after.slice(1, -1).split('|')
+
+      blacklist.push('<br', '\\[[^\\]]')
+
+      const currentElement = paragraph
+      const afterElement = paragraph.nextElementSibling
+      const isBlackList = blacklist.some(item => new RegExp(item).test(currentElement.innerHTML)) || blacklist.some(item => new RegExp(item).test(afterElement.innerHTML))
+      // === END BLACKLIST ===
+
+      if (isBlackList && thresholds.includes(index)) {
+        const thresholdIndex = thresholds.indexOf(index)
+        if (thresholdIndex !== -1) {
+          thresholds[thresholdIndex] += 1
+        }
+        console.log(thresholds)
+        return
+      }
+
       if (thresholds.includes(index)) {
-        // === BLACKLIST ===
-        const bfBlacklist = blacklist.before.slice(1, -1).split('|')
-        const afBlacklist = blacklist.after.slice(1, -1).split('|')
-
-        bfBlacklist.push('<br', '\\[[^\\]]')
-        afBlacklist.push('<br', '\\[[^\\]]')
-
-        const beforeElement = paragraph.previousElementSibling
-        const afterElement = paragraph.nextElementSibling
-
         const div = editor.dom.create('div', {
           class: 'mceNonEditable adv-preview',
           contenteditable: 'false',
@@ -102,31 +108,7 @@ tinymce.PluginManager.add('previewAdv', (editor, url) => {
         div.style.margin = '10px 0'
         div.innerHTML = 'Spazio riservato per la pubblicità'
 
-        // BEFORE BLACKLIST
-        if (beforeElement && bfBlacklist.some(item => new RegExp(item).test(beforeElement.innerHTML))) {
-          return
-        }
-
-        // AFTER BLACKLIST TODO: Far uscire l'adv e non eliminarlo dopo il blacklist
-        if (afterElement && afBlacklist.some(item => new RegExp(item).test(afterElement.innerHTML))) {
-          const nextElement = afterElement.nextElementSibling
-          const nextNextElement = nextElement ? nextElement.nextElementSibling : null
-
-          if (
-            (nextElement && afBlacklist.some(item => new RegExp(item).test(nextElement.innerHTML))) ||
-            (nextNextElement && afBlacklist.some(item => new RegExp(item).test(nextNextElement.innerHTML)))
-          ) {
-            thresholds[insertedAdv] = thresholds[insertedAdv] + 2
-            return
-          } else {
-            editor.dom.insertAfter(div, nextElement)
-          }
-          return
-        }
-        // === END BLACKLIST ===
-
         editor.dom.insertAfter(div, paragraph)
-        insertedAdv++
       }
     })
   }
