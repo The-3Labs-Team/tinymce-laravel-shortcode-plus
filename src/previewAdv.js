@@ -85,16 +85,13 @@ tinymce.PluginManager.add('previewAdv', (editor, url) => {
       const isBlackList = blacklist.some(item => new RegExp(item).test(currentElement.innerHTML)) || blacklist.some(item => new RegExp(item).test(afterElement.innerHTML))
       // === END BLACKLIST ===
 
-      if (isBlackList && thresholds.includes(index)) {
-        const thresholdIndex = thresholds.indexOf(index)
-        if (thresholdIndex !== -1) {
-          thresholds[thresholdIndex] += 1
-        }
-        console.log(thresholds)
-        return
-      }
-
       if (thresholds.includes(index)) {
+        // Sposto i threshold di 1 se è presente un elemento blacklist
+        if (isBlackList) {
+          thresholds = thresholds.map(item => item + 1)
+          return
+        }
+
         const div = editor.dom.create('div', {
           class: 'mceNonEditable adv-preview',
           contenteditable: 'false',
