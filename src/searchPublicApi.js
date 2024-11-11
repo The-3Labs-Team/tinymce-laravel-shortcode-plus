@@ -159,8 +159,8 @@ async function printTypes () {
   const typesContainer = document.querySelector('#select-type')
 
   const types = await getTypes()
-
-  Object.keys(types).forEach(type => {
+  console.log(types)
+  types.forEach(type => {
     typesContainer.innerHTML += `
             <input type="radio" id="${type}" name="type" value="${type}">
             <button onclick="document.getElementById('${type}').checked = true;" type="submit">${type}</button>
