@@ -38,6 +38,13 @@ tinymce.PluginManager.add('widgetbay', function (editor, url) {
                 <p style="color: #9f9f9f; font-size: 0.8rem;">It only works on single product</p>
             </label>
             
+            <label>
+                <span class="label-span" style="display: inline !important;">Use Hero Layout (optional)</span>
+                <input type="checkbox" name="use-hero-layout" style="max-width: fit-content; margin: 10px 0;">
+
+                <p style="color: #9f9f9f; font-size: 0.8rem;">It only works on multi products</p>
+            </label>
+            
             <button type="submit" style="padding: 10px; border-radius: .2rem; cursor: pointer; background-color: rgb(14,165,233); color: white;">
               Create
             </button>
@@ -139,8 +146,9 @@ function generateShortcode () {
     const parsedLink = link ? 'link="' + link + '" ' : ' '
     const parsedId = formData.get('widget-id') ? 'id="' + formData.get('widget-id') + '"' : ' '
     const parsedForceLink = formData.get('widget-force-link') ? 'forceLink="' + formData.get('widget-force-link') + '" ' : ' '
+    const useHeroLayout = formData.get('use-hero-layout') ? 'layout="hero"' : ''
 
-    const content = '[widgetbay ' + parsedId + parsedLink + parsedTitle + parsedForceLink + ']'
+    const content = '[widgetbay ' + parsedId + parsedLink + parsedTitle + parsedForceLink + useHeroLayout + ']'
 
     tinymce.activeEditor.insertContent(content)
     tinymce.activeEditor.windowManager.close()
