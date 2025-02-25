@@ -68,6 +68,11 @@ tinymce.PluginManager.add('shortcodeList', function (editor, url) {
       description: 'Insert a twitter frame'
     },
     {
+      title: 'BlueSky',
+      code: '[bluesky url="YOUR_URL_HERE"]',
+      description: 'Insert a BlueSky frame'
+    },
+    {
       title: 'Instagram',
       code: '[instagram url="YOUR_URL_HERE"]',
       description: 'Insert an instagram frame'
