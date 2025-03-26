@@ -100,6 +100,10 @@ tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
       .tox-dialog {
         max-width: 1350px !important;
       }
+      
+      .tox-dialog__content-js{
+        overflow: auto !important;
+      }
 
       .tox-dialog__body-content {
         min-height: 825px !important;
