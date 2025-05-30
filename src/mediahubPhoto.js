@@ -84,7 +84,7 @@ tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
                     </div>
                 </div>
                 
-                <div style="margin-top: auto; padding-top: 15px; border-top: 1px solid #e5e7eb;">
+                <div style="padding-top: 15px; border-top: 1px solid #e5e7eb;">
                     <button type="submit" style="background-color: #4f46e5; color: white; border: none; border-radius: 6px; padding: 12px 0; width: 100%; font-weight: 600; letter-spacing: 0.025em; cursor: pointer; transition: all 0.3s; text-align: center; display: flex; align-items: center; justify-content: center;">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="18" height="18" style="margin-right: 8px;">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
