@@ -44,24 +44,27 @@ tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
                     <input type="text" placeholder="Insert link" name="link" style="background-color: #ffffff; border: 1px solid #d1d5db; border-radius: 6px; padding: 10px 15px; width: 100%; font-size: 14px; outline: none; transition: border 0.2s; color: #1f2937; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);">
                 </div>
 
-                <div style="margin-bottom: 15px;">
-                    <label for="align" style="display: block; margin-bottom: 5px; font-size: 14px; color: #4b5563; font-weight: 500;">Alignment</label>
-                    <select name="align" style="background-color: #ffffff; border: 1px solid #d1d5db; border-radius: 6px; padding: 10px 15px; width: 100%; font-size: 14px; outline: none; cursor: pointer; color: #1f2937; appearance: none; background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="%236b7280"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>'); background-position: right 10px center; background-repeat: no-repeat; background-size: 20px; text-align: center; text-align-last: center;">
-                        <option value="" selected>--Select alignment--</option>
-                        <option value="left">Left</option>
-                        <option value="right">Right</option>
-                    </select>
-                </div>
+<!--                <div style="margin-bottom: 15px;">-->
+<!--                    <label for="align" style="display: block; margin-bottom: 5px; font-size: 14px; color: #4b5563; font-weight: 500;">Alignment</label>-->
+<!--                    <select name="align" style="background-color: #ffffff; border: 1px solid #d1d5db; border-radius: 6px; padding: 10px 15px; width: 100%; font-size: 14px; outline: none; cursor: pointer; color: #1f2937; appearance: none; background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="%236b7280"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>'); background-position: right 10px center; background-repeat: no-repeat; background-size: 20px; text-align: center; text-align-last: center;">-->
+<!--                        <option value="" selected>&#45;&#45;Select alignment&#45;&#45;</option>-->
+<!--                        <option value="left">Left</option>-->
+<!--                        <option value="right">Right</option>-->
+<!--                    </select>-->
+<!--                </div>-->
 
                 <div style="margin-bottom: 15px;">
                     <label for="effect" style="display: block; margin-bottom: 5px; font-size: 14px; color: #4b5563; font-weight: 500;">Effect</label>
                     <select name="effect" style="background-color: #ffffff; border: 1px solid #d1d5db; border-radius: 6px; padding: 10px 15px; width: 100%; font-size: 14px; outline: none; cursor: pointer; color: #1f2937; appearance: none; background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="%236b7280"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>'); background-position: right 10px center; background-repeat: no-repeat; background-size: 20px; text-align: center; text-align-last: center;">
                         <option value="" selected>--Select effect--</option>
                         <option value="">Default</option>
-                        <option value="gallery-flex">Gallery Flex</option>
+                        <option value="gallery-flex">Vertical Images (Gallery Flex)</option>
                         <option value="juxtapose">Image Compare</option>
                         <option value="carousel">Carousel</option>
                     </select>
+                    <p style="font-size: .8rem; color: #6b7280; margin-top: 5px;">
+                        If use vertical images, select the <strong>Vertical Images</strong> for correctly display the images.
+                    </p>
                 </div>
 
                 <div style="margin-bottom: 15px;">
