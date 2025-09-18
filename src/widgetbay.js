@@ -37,6 +37,12 @@ tinymce.PluginManager.add('widgetbay', function (editor, url) {
                 <input type="text" name="widget-force-link" style="border: 2px solid #eeeeee; padding: 7px 10px; border-radius: 5px;">
                 <p style="color: #9f9f9f; font-size: 0.8rem;">It only works on single product</p>
             </label>
+
+            <label>
+                <span class="label-span">Price (optional)</span>
+                <input type="text" name="widget-price" style="border: 2px solid #eeeeee; padding: 7px 10px; border-radius: 5px;">
+                <p style="color: #9f9f9f; font-size: 0.8rem;">Es: 30.22 - Use dot for decimals</p>
+            </label>
             
             <button type="submit" style="padding: 10px; border-radius: .2rem; cursor: pointer; background-color: rgb(14,165,233); color: white;">
               Create
@@ -139,8 +145,9 @@ function generateShortcode () {
     const parsedLink = link ? 'link="' + link + '" ' : ' '
     const parsedId = formData.get('widget-id') ? 'id="' + formData.get('widget-id') + '"' : ' '
     const parsedForceLink = formData.get('widget-force-link') ? 'forceLink="' + formData.get('widget-force-link') + '" ' : ' '
+    const parsedPrice = formData.get('widget-price') ? 'price="' + formData.get('widget-price') + '" ' : ' '
 
-    const content = '[widgetbay ' + parsedId + parsedLink + parsedTitle + parsedForceLink + ']'
+    const content = '[widgetbay ' + parsedId + parsedLink + parsedTitle + parsedForceLink + parsedPrice + ']'
 
     tinymce.activeEditor.insertContent(content)
     tinymce.activeEditor.windowManager.close()
