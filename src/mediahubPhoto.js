@@ -44,14 +44,14 @@ tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
                     <input type="text" placeholder="Insert link" name="link" style="background-color: #ffffff; border: 1px solid #d1d5db; border-radius: 6px; padding: 10px 15px; width: 100%; font-size: 14px; outline: none; transition: border 0.2s; color: #1f2937; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);">
                 </div>
 
-<!--                <div style="margin-bottom: 15px;">-->
-<!--                    <label for="align" style="display: block; margin-bottom: 5px; font-size: 14px; color: #4b5563; font-weight: 500;">Alignment</label>-->
-<!--                    <select name="align" style="background-color: #ffffff; border: 1px solid #d1d5db; border-radius: 6px; padding: 10px 15px; width: 100%; font-size: 14px; outline: none; cursor: pointer; color: #1f2937; appearance: none; background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="%236b7280"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>'); background-position: right 10px center; background-repeat: no-repeat; background-size: 20px; text-align: center; text-align-last: center;">-->
-<!--                        <option value="" selected>&#45;&#45;Select alignment&#45;&#45;</option>-->
-<!--                        <option value="left">Left</option>-->
-<!--                        <option value="right">Right</option>-->
-<!--                    </select>-->
-<!--                </div>-->
+                <div style="margin-bottom: 15px;">
+                    <label for="align" style="display: block; margin-bottom: 5px; font-size: 14px; color: #4b5563; font-weight: 500;">Alignment</label>
+                    <select name="align" style="background-color: #ffffff; border: 1px solid #d1d5db; border-radius: 6px; padding: 10px 15px; width: 100%; font-size: 14px; outline: none; cursor: pointer; color: #1f2937; appearance: none; background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="%236b7280"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>'); background-position: right 10px center; background-repeat: no-repeat; background-size: 20px; text-align: center; text-align-last: center;">
+                        <option value="" selected>&#45;&#45;Select alignment&#45;&#45;</option>
+                        <option value="left">Left</option>
+                        <option value="right">Right</option>
+                    </select>
+                </div>
 
                 <div style="margin-bottom: 15px;">
                     <label for="effect" style="display: block; margin-bottom: 5px; font-size: 14px; color: #4b5563; font-weight: 500;">Effect</label>
@@ -76,12 +76,22 @@ tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
                     </select>
                 </div>
 
-                <div style="margin-bottom: 20px;">
+                <div style="margin-bottom: 15px;">
                     <label for="max-width" style="display: block; margin-bottom: 5px; font-size: 14px; color: #4b5563; font-weight: 500;">Max width</label>
                     <div style="display:flex; align-items: center; gap: 10px;">                    
                         <input type="number" placeholder="Insert max width" name="max-width" value="" style="background-color: #ffffff; border: 1px solid #d1d5db; border-radius: 6px; padding: 10px 15px; width: 100%; font-size: 14px; outline: none; transition: border 0.2s; color: #1f2937; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);">
                         <span style="font-size: .9rem; color: #8798af;">px</span>
                     </div>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="display: flex; align-items: center; cursor: pointer; font-size: 14px; color: #4b5563; font-weight: 500;">
+                        <input type="checkbox" name="disable_zoom" value="true" style="margin-right: 8px; width: 16px; height: 16px; accent-color: #4f46e5; cursor: pointer;">
+                        Disable Zoom
+                    </label>
+                    <p style="font-size: .8rem; color: #6b7280; margin-top: 5px; margin-left: 24px;">
+                        By default, the zoom effect is enabled. Check this box to disable it.
+                    </p>
                 </div>
                 
                 <div style="padding-top: 15px; border-top: 1px solid #e5e7eb;">
@@ -268,8 +278,9 @@ function insetDataIntoEditor(editor) {
     const maxWidth = formData.get('max-width') ? `max-width="${formData.get('max-width')}"` : ''
     const effect = formData.get('effect') ? `effect="${formData.get('effect')}"` : ''
     const shape = formData.get('shape') ? `shape="${formData.get('shape')}"` : ''
+    const zoom = formData.get('disable_zoom') && formData.get('disable_zoom') === 'true' ? `zoom="false"` : ''
 
-    let result = `[photo id="${ids}" ${caption} ${link} ${align} ${maxWidth} ${effect} ${shape}]`
+    let result = `[photo id="${ids}" ${caption} ${link} ${align} ${maxWidth} ${effect} ${shape} ${zoom}]`
     result = result.replace(/ +]$/, ']')
     editor.insertContent(result)
     tinymce.activeEditor.windowManager.close()
