@@ -481,6 +481,8 @@ function getFileUploadCard() {
   return `
     <div id="upload-section" style="position: relative; display: flex; flex-direction: column; cursor: pointer; background-color: #ffffff; border-radius: 8px; overflow: hidden; transition: all 0.2s ease; height: 100%; border: 2px dashed #d1d5db; margin: 2px; justify-content: center; align-items: center; padding: 20px; text-align: center; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);">
       <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 200px;">
+        <div id="image-preview-container">
+        </div>
         <svg id="upload-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 48px; height: 48px; color: #6b7280; margin-bottom: 12px;">
           <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
         </svg>
@@ -557,6 +559,11 @@ function updateUploadUI(fileCount) {
   if (fileCount > 0) {
     // Stato con file selezionati
     loadCollections()
+    
+    // Generate image previews and replace icon
+    const fileInput = document.querySelector('#file-input')
+    generateImagePreviews(fileInput.files, icon)
+    
     uploadSection.classList.add('upload-section-has-files')
     statusText.textContent = `${fileCount} immagin${fileCount > 1 ? 'i' : 'e'} selezionat${fileCount > 1 ? 'e' : 'a'}`
     
@@ -569,9 +576,17 @@ function updateUploadUI(fileCount) {
       <span>Carica</span>
     `
   } else {
-    // Stato iniziale senza file
+    // Stato iniziale senza file - ripristina icona originale
     statusText.textContent = 'Carica nuove immagini'
     uploadSection.classList.remove('upload-section-has-files')
+    
+    // Restore original SVG icon
+    const previewContainer = uploadSection.querySelector('#image-preview-container')
+    if (previewContainer) {
+      previewContainer.innerHTML = ''
+    }
+    
+    icon.style.display = 'block'
     
     mainBtn.style.backgroundColor = '#4f46e5'
     mainBtn.style.boxShadow = '0 2px 4px rgba(79, 70, 229, 0.2)'
@@ -581,6 +596,105 @@ function updateUploadUI(fileCount) {
       </svg>
       <span>Seleziona file</span>
     `
+  }
+}
+
+// Generate stacked image previews
+function generateImagePreviews(files, iconElement) {
+  // Hide the original icon
+  if (iconElement) {
+    iconElement.style.display = 'none'
+  }
+  
+  // Remove existing preview container if it exists
+  const previewContainer = document.querySelector('#image-preview-container')
+  
+  // Create preview container
+  previewContainer.style.cssText = `
+    position: relative;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  `
+  
+  // Insert container where the icon was
+  const statusText = document.querySelector('#upload-status-text')
+  statusText.parentNode.insertBefore(previewContainer, statusText)
+  
+  // Process up to 3 files for preview
+  const maxPreviews = Math.min(3, files.length)
+  let loadedPreviews = 0
+  
+  for (let i = 0; i < maxPreviews; i++) {
+    const file = files[i]
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader()
+      
+      reader.onload = function(e) {
+        const img = document.createElement('img')
+        img.src = e.target.result
+        
+        // Stacked positioning with slight offsets
+        const zIndex = maxPreviews - i
+        const offset = i * 4
+        
+        img.style.cssText = `
+          position: absolute;
+          width: 36px;
+          height: 36px;
+          border-radius: 6px;
+          object-fit: cover;
+          border: 2px solid white;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+          z-index: ${zIndex};
+          top: ${offset}px;
+          left: ${offset}px;
+          transition: transform 0.2s ease;
+        `
+        
+        // Add hover effect for the top image
+        if (i === 0) {
+          img.addEventListener('mouseenter', function() {
+            this.style.transform = 'scale(1.1)'
+          })
+          img.addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1)'
+          })
+        }
+        
+        previewContainer.appendChild(img)
+        loadedPreviews++
+        
+        // Add count badge if there are more than 3 images
+        if (files.length > 3 && loadedPreviews === maxPreviews) {
+          const badge = document.createElement('div')
+          badge.style.cssText = `
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background-color: #ef4444;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            z-index: ${maxPreviews + 1};
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+          `
+          badge.textContent = `+${files.length - 3}`
+          previewContainer.appendChild(badge)
+        }
+      }
+      
+      reader.readAsDataURL(file)
+    }
   }
 }
 
