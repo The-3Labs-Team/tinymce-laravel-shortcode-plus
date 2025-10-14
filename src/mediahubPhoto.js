@@ -210,7 +210,124 @@ async function lastImage(editor) {
 
   sliderDimensions(3)
   printCards(results, container)
+  
+  // Initialize upload functionality
+  initUploadSection()
 }
+
+async function uploadToMediaHub(files) {
+  const formData = new FormData()
+  
+  // Add all files with the 'files' parameter name (as array)
+  for (let i = 0; i < files.length; i++) {
+    formData.append('files[]', files[i])
+  }
+  
+  // Add collection name
+  formData.append('collectionName', 'default')
+  
+  // Get CSRF token from multiple sources
+  let csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
+                  document.querySelector('input[name="_token"]')?.value ||
+                  window.Laravel?.csrfToken ||
+                  document.querySelector('meta[name="_token"]')?.getAttribute('content')
+
+  // Try to get Nova's CSRF token
+  const novaToken = document.querySelector('meta[name="nova-csrf-token"]')?.getAttribute('content')
+  if (novaToken) {
+    csrfToken = novaToken
+  }
+  
+  // Add CSRF token to form data as well
+  if (csrfToken) {
+    formData.append('_token', csrfToken)
+  }
+
+  const headers = {
+    'X-Requested-With': 'XMLHttpRequest',
+    'Accept': 'application/json'
+  }
+  
+  if (csrfToken) {
+    headers['X-CSRF-TOKEN'] = csrfToken
+  }
+
+  const response = await fetch('/nova-vendor/media-hub/media/save', {
+    method: 'POST',
+    body: formData,
+    headers: headers
+  })
+  
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`)
+  }
+  
+  const result = await response.json()
+  return result
+}
+
+function initUploadSection() {
+  const fileInput = document.querySelector('#file-input')
+  const uploadInfo = document.querySelector('#upload-info')
+  const fileCount = document.querySelector('#file-count')
+  const uploadBtn = document.querySelector('#upload-btn')
+
+  fileInput.addEventListener('change', function() {
+    const files = this.files
+    if (files.length > 0) {
+      fileCount.textContent = `${files.length} immagin${files.length > 1 ? 'i' : 'e'} selezionat${files.length > 1 ? 'e' : 'a'}`
+      // uploadBtn.textContent = `Carica ${files.length} immagin${files.length > 1 ? 'i' : 'e'}`
+      uploadInfo.style.display = 'block'
+    } else {
+      uploadInfo.style.display = 'none'
+    }
+  })
+
+  uploadBtn.addEventListener('click', async function() {
+    const files = fileInput.files
+    if (files.length === 0) return
+
+    // Disable button and show loading
+    uploadBtn.disabled = true
+    uploadBtn.textContent = 'Caricamento in corso...'
+
+    try {
+      const uploadedFiles = await uploadToMediaHub(files)
+      const mediaList = uploadedFiles.media
+      
+      // Reset form
+      fileInput.value = ''
+      uploadInfo.style.display = 'none'
+      
+      // Reload images to show new uploads
+      await lastImage()
+
+      //Seleziona automaticamente le immagini caricate
+      const container = document.querySelector('#card-container')
+      mediaList.forEach(media => {
+        const card = container.querySelector(`.checkboxes[data-id="${media.id}"]`)
+        if (card) {
+          const checkbox = card.querySelector('input[type="checkbox"]')
+          if (checkbox && !checkbox.checked) {
+            checkbox.checked = true
+            selectCard(card)
+          }
+        }
+      })
+
+
+      // alert(`${files.length} immagin${files.length > 1 ? 'i' : 'e'} caricate con successo!`)
+      
+    } catch (error) {
+      console.error('Errore durante il caricamento:', error)
+      // alert('Errore durante il caricamento delle immagini')
+    }
+    
+    // Re-enable button
+    uploadBtn.disabled = false
+  })
+}
+
 function searchImages(query) {
   const formQuery = document.querySelector('.tox-dialog__content-js form#query')
   const container = document.querySelector('#card-container')
@@ -232,16 +349,24 @@ function searchImages(query) {
 }
 
 function printCards(cards, container, range = 3) {
-  // Reset container
-  container.innerHTML = ''
-
-  console.log(sliderDimensions)
+  // Reset container (except upload section)
+  container.innerHTML = `
+    <div id="upload-section">
+      <p>Carica nuove immagini:</p>
+      <input type="file" id="file-input" multiple accept="image/*">
+      <div id="upload-info" style="display: none;">
+        <p id="file-count"></p>
+        <button type="button" id="upload-btn">Carica</button>
+      </div>
+    </div>
+  `
 
   // Print cards on DOM
   if (cards.length > 0) {
     cards.forEach((card, index) => {
       const cardHtml = `
-        <label class="checkboxes" style="position: relative; display: flex; flex-direction: column; cursor: pointer; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: all 0.2s ease; height: 100%; border: 2px solid #e5e7eb; transform: translateY(0); margin: 2px;">
+        <label class="checkboxes" data-id="${card.id}"
+         style="position: relative; display: flex; flex-direction: column; cursor: pointer; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: all 0.2s ease; height: 100%; border: 2px solid #e5e7eb; transform: translateY(0); margin: 2px;">
             <div style="height: 200px; position: relative; overflow: hidden;">
                 <img src="${card.thumbnail_url ?? card.url}" style="width: 100%; height: 100%; object-fit: cover;">
                 <div style="position: absolute; inset: 0; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);"></div>
@@ -339,17 +464,9 @@ function activeCards() {
       const chechbox = this.querySelector('input[type="checkbox"]').checked
 
       if (chechbox) {
-        this.classList.add('active')
-        this.style.borderColor = '#4338ca';
-        this.style.transform = 'translateY(-3px)';
-        this.style.boxShadow = '0 6px 12px rgba(79, 70, 229, 0.2)';
-        this.querySelector('.checkboxes div:first-child div:last-child').style.opacity = '1';
+        selectCard(this)
       } else {
-        this.classList.remove('active')
-        this.style.borderColor = '#e5e7eb';
-        this.style.transform = 'translateY(0)';
-        this.style.boxShadow = '0 2px 5px rgba(0,0,0,0.1)';
-        this.querySelector('.checkboxes div:first-child div:last-child').style.opacity = '0';
+        deselectCard(this)
       }
     })
 
@@ -401,4 +518,18 @@ function sliderDimensions(value) {
       imageContainer.style.height = '100px'
     }
   })
+}
+
+function selectCard(card) {
+  card.classList.add('active')
+  card.style.borderColor = '#4f46e5';
+  card.style.transform = 'translateY(0)';
+  card.style.boxShadow = '0 4px 10px rgba(79, 70, 229, 0.3)';
+}
+
+function deselectCard(card) {
+  card.classList.remove('active')
+  card.style.borderColor = '#e5e7eb';
+  card.style.transform = 'translateY(0)';
+  card.style.boxShadow = '0 2px 5px rgba(0,0,0,0.1)';
 }
