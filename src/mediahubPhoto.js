@@ -275,6 +275,27 @@ function searchImages(query) {
   })
 }
 
+function getCollections() {
+  const collections = fetch('/nova-vendor/media-hub/collections', {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  }).then(function (response) {
+    if (response.ok) {
+          return response.json()
+        } else {
+          throw new Error('Error in Nova API Request')
+        }
+      }
+      // Debug response
+  ).then(function (data) {
+    return data
+  })
+
+  return collections
+}
+
 // Print cards in the container
 function printCards(cards, container, range = 3) {
   // Reset container and add upload card
@@ -460,11 +481,17 @@ function getFileUploadCard() {
   return `
     <div id="upload-section" style="position: relative; display: flex; flex-direction: column; cursor: pointer; background-color: #ffffff; border-radius: 8px; overflow: hidden; transition: all 0.2s ease; height: 100%; border: 2px dashed #d1d5db; margin: 2px; justify-content: center; align-items: center; padding: 20px; text-align: center; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);">
       <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 200px;">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 48px; height: 48px; color: #6b7280; margin-bottom: 12px;">
+        <svg id="upload-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 48px; height: 48px; color: #6b7280; margin-bottom: 12px;">
           <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
         </svg>
 
         <p id="upload-status-text" style="margin: 0 0 15px 0; font-size: 14px; color: #4b5563; font-weight: 500;">Carica nuove immagini</p>
+        
+        <label id="collection-select-container" for="collection-select" style="display: none; margin-bottom: 5px; font-size: 14px; color: #4b5563; font-weight: 500;">Select Collection
+          <select id="collection-select" style="background-color: #ffffff; border: 1px solid #d1d5db; border-radius: 6px; padding: 8px 12px; width: 100%; max-width: 200px; font-size: 13px; outline: none; cursor: pointer; color: #1f2937; margin-bottom: 15px; appearance: none; background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 20 20\" fill=\"%236b7280\"><path fill-rule=\"evenodd\" d=\"M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z\" clip-rule=\"evenodd\" /></svg>'); background-position: right 8px center; background-repeat: no-repeat; background-size: 16px;">
+          </select>
+        </label>
+        
         <input type="file" id="file-input" multiple accept="image/*" style="display: none;">
         <button type="button" id="main-upload-btn" onclick="handleUploadButtonClick()" style="background-color: #4f46e5; color: white; border: none; border-radius: 6px; padding: 8px 16px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 16px; height: 16px;">
@@ -487,14 +514,49 @@ function initUploadSection() {
   })
 }
 
+// Load collections and populate the select
+async function loadCollections() {
+  try {
+    const collections = await getCollections()
+    const selectContainer = document.querySelector('#collection-select-container')
+    const selectElement = document.querySelector('#collection-select')
+    
+    if (selectElement && collections && collections.length > 0) {
+      // Clear existing options
+      selectElement.innerHTML = ''
+      
+      // Add collections to select
+      collections.forEach(collection => {
+        //if not empty
+        if (!collection || collection.trim() === '') return;
+        const option = document.createElement('option')
+        option.value = collection
+        option.textContent = collection
+        selectElement.appendChild(option)
+      })
+    }
+
+    // Show select container
+    if (collections && collections.length > 0) {
+      selectContainer.style.display = 'block'
+    } else {
+      selectContainer.style.display = 'none'
+    }
+  } catch (error) {
+    console.warn('Could not load collections:', error)
+  }
+}
+
 // Update upload button and status text based on file count
 function updateUploadUI(fileCount) {
   const uploadSection = document.querySelector('#upload-section')
   const statusText = document.querySelector('#upload-status-text')
   const mainBtn = document.querySelector('#main-upload-btn')
+  const icon = uploadSection.querySelector('svg#upload-icon')
   
   if (fileCount > 0) {
     // Stato con file selezionati
+    loadCollections()
     uploadSection.classList.add('upload-section-has-files')
     statusText.textContent = `${fileCount} immagin${fileCount > 1 ? 'i' : 'e'} selezionat${fileCount > 1 ? 'e' : 'a'}`
     
@@ -699,8 +761,12 @@ async function uploadToMediaHub(files) {
     formData.append('files[]', files[i])
   }
   
+  // Get selected collection
+  const collectionSelect = document.querySelector('#collection-select')
+  const selectedCollection = collectionSelect ? collectionSelect.value : 'default'
+  
   // Add collection name
-  formData.append('collectionName', 'default')
+  formData.append('collectionName', selectedCollection)
   
   // Get CSRF token from multiple sources
   let csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
