@@ -27,8 +27,8 @@ tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
             <div style="width: 75%; height: 700px; position: relative;">
                 
                 <label id="drop-zone" style="position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 100; display: none; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; background-color: rgba(96, 168, 240, 0.9); border: 2px dashed #2c21e8; border-radius: 8px; text-align: center; transition: all 0.2s; color: white; font-weight: 600; font-size: 16px;">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 64px; height: 64px; margin-bottom: 16px;">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-3-6 3 3m0 0-3 3m3-3H9m1.5-4.5V3" />
+                  <svg id="upload-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 64px; height: 64px; margin-bottom: 16px;">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"></path>
                   </svg>
                   Rilascia qui le immagini per caricarle
                 </label>
