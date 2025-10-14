@@ -30,7 +30,7 @@ tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
                   <svg id="upload-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 64px; height: 64px; margin-bottom: 16px;">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"></path>
                   </svg>
-                  Rilascia qui le immagini per caricarle
+                  Release here to upload images
                 </label>
                 
                 <div style="width: 100%; height: 100%; background-color: #fdfeff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); overflow: auto; padding: 15px;" id="card-imgs-zone">
@@ -487,10 +487,10 @@ function getFileUploadCard() {
           <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
         </svg>
 
-        <p id="upload-status-text" style="margin: 0 0 15px 0; font-size: 14px; color: #4b5563; font-weight: 500;">Carica nuove immagini</p>
+        <p id="upload-status-text" style="margin: 0 0 15px 0; font-size: 14px; color: #4b5563; font-weight: 500;">Upload Images</p>
         
         <label id="collection-select-container" for="collection-select" style="display: none; margin-bottom: 5px; font-size: 14px; color: #4b5563; font-weight: 500;">Select Collection
-          <select id="collection-select" style="background-color: #ffffff; border: 1px solid #d1d5db; border-radius: 6px; padding: 8px 12px; width: 100%; max-width: 200px; font-size: 13px; outline: none; cursor: pointer; color: #1f2937; margin-bottom: 15px; appearance: none; background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 20 20\" fill=\"%236b7280\"><path fill-rule=\"evenodd\" d=\"M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z\" clip-rule=\"evenodd\" /></svg>'); background-position: right 8px center; background-repeat: no-repeat; background-size: 16px;">
+          <select id="collection-select" style="background-color: #ffffff; border: 1px solid #d1d5db; border-radius: 6px; padding: 8px 12px; width: 100%; max-width: 200px; font-size: 13px; outline: none; cursor: pointer; color: #1f2937; margin-bottom: 15px; appearance: none; text-align: left;">
           </select>
         </label>
         
@@ -499,7 +499,7 @@ function getFileUploadCard() {
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 16px; height: 16px;">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
-          <span>Seleziona file</span>
+          <span>Select files</span>
         </button>
       </div>
     </div>
@@ -565,7 +565,7 @@ function updateUploadUI(fileCount) {
     generateImagePreviews(fileInput.files, icon)
     
     uploadSection.classList.add('upload-section-has-files')
-    statusText.textContent = `${fileCount} immagin${fileCount > 1 ? 'i' : 'e'} selezionat${fileCount > 1 ? 'e' : 'a'}`
+    statusText.textContent = `${fileCount} image${fileCount > 1 ? 's' : ''} selected`
     
     mainBtn.style.backgroundColor = '#10b981'
     mainBtn.style.boxShadow = '0 2px 4px rgba(16, 185, 129, 0.2)'
@@ -573,11 +573,11 @@ function updateUploadUI(fileCount) {
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 16px; height: 16px;">
         <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
       </svg>
-      <span>Carica</span>
+      <span>Upload</span>
     `
   } else {
     // Stato iniziale senza file - ripristina icona originale
-    statusText.textContent = 'Carica nuove immagini'
+    statusText.textContent = 'Load new images'
     uploadSection.classList.remove('upload-section-has-files')
     
     // Restore original SVG icon
@@ -594,7 +594,7 @@ function updateUploadUI(fileCount) {
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 16px; height: 16px;">
         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
       </svg>
-      <span>Seleziona file</span>
+      <span>Select files</span>
     `
   }
 }
@@ -639,31 +639,22 @@ function generateImagePreviews(files, iconElement) {
         
         // Stacked positioning with slight offsets
         const zIndex = maxPreviews - i
-        const offset = i * 4
+        const offsetX = i * 8
+        const offsetY = i * 4
         
         img.style.cssText = `
           position: absolute;
-          width: 36px;
-          height: 36px;
+          width: 45px;
+          height: 45px;
           border-radius: 6px;
           object-fit: cover;
-          border: 2px solid white;
+          border: 1px solid white;
           box-shadow: 0 2px 6px rgba(0,0,0,0.15);
           z-index: ${zIndex};
-          top: ${offset}px;
-          left: ${offset}px;
+          top: ${offsetY}px;
+          left: ${offsetX}px;
           transition: transform 0.2s ease;
         `
-        
-        // Add hover effect for the top image
-        if (i === 0) {
-          img.addEventListener('mouseenter', function() {
-            this.style.transform = 'scale(1.1)'
-          })
-          img.addEventListener('mouseleave', function() {
-            this.style.transform = 'scale(1)'
-          })
-        }
         
         previewContainer.appendChild(img)
         loadedPreviews++
@@ -718,7 +709,7 @@ async function handleUploadButtonClick() {
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 16px; height: 16px; animation: spin 1s linear infinite;">
       <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
     </svg>
-    <span>Caricamento...</span>
+    <span>Loading...</span>
   `
 
   try {
