@@ -24,10 +24,20 @@ tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
     <form method="GET" id="data" style="color: #1f2937;">
         <div style="display: flex; gap: 15px;">
 
-            <div style="width: 75%; height: 700px; background-color: #fdfeff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); overflow: auto; padding: 15px;">
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; align-items: stretch;" id="card-container">
-                    <!--Images-->
-                    <p style="padding: 20px; color: #6b7280; font-size: 15px; grid-column: 1 / -1; text-align: center;">Enter a search query to find images</p>
+            <div style="width: 75%; height: 700px; position: relative;">
+                
+                <label id="drop-zone" style="position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 100; display: none; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; background-color: rgba(96, 168, 240, 0.9); border: 2px dashed #2c21e8; border-radius: 8px; text-align: center; transition: all 0.2s; color: white; font-weight: 600; font-size: 16px;">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 64px; height: 64px; margin-bottom: 16px;">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-3-6 3 3m0 0-3 3m3-3H9m1.5-4.5V3" />
+                  </svg>
+                  Rilascia qui le immagini per caricarle
+                </label>
+                
+                <div style="width: 100%; height: 100%; background-color: #fdfeff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); overflow: auto; padding: 15px;" id="card-imgs-zone">
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; align-items: stretch;" id="card-container">
+                        <!--Images-->
+                        <p style="padding: 20px; color: #6b7280; font-size: 15px; grid-column: 1 / -1; text-align: center;">Enter a search query to find images</p>
+                    </div>
                 </div>
             </div>
 
@@ -146,6 +156,30 @@ tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
       #card-container {
         padding: 5px;
       }
+
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+
+      #upload-section:hover {
+        border-color: #9ca3af !important;
+        background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%) !important;
+      }
+
+      #drop-zone {
+        backdrop-filter: blur(8px);
+      }
+
+      #drop-zone:hover {
+        background-color: rgba(96, 168, 240, 0.95) !important;
+        border-color: #1e40af !important;
+      }
+
+      .upload-section-has-files {
+        border: 2px solid #10b981 !important; 
+        box-shadow: 0 0 10px rgb(16 185 129) !important;
+      }
     </style>
   `
 
@@ -169,7 +203,7 @@ tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
       // Search Image
       searchImages()
       // Insert into editor
-      insetDataIntoEditor(editor)
+      insertShortcode(editor)
     }
   })
 
@@ -204,7 +238,6 @@ async function lastImage(editor) {
       }
       // Debug response
   ).then(function (data) {
-    console.log(data.data)
     return data.data
   })
 
@@ -213,119 +246,9 @@ async function lastImage(editor) {
   
   // Initialize upload functionality
   initUploadSection()
-}
-
-async function uploadToMediaHub(files) {
-  const formData = new FormData()
   
-  // Add all files with the 'files' parameter name (as array)
-  for (let i = 0; i < files.length; i++) {
-    formData.append('files[]', files[i])
-  }
-  
-  // Add collection name
-  formData.append('collectionName', 'default')
-  
-  // Get CSRF token from multiple sources
-  let csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
-                  document.querySelector('input[name="_token"]')?.value ||
-                  window.Laravel?.csrfToken ||
-                  document.querySelector('meta[name="_token"]')?.getAttribute('content')
-
-  // Try to get Nova's CSRF token
-  const novaToken = document.querySelector('meta[name="nova-csrf-token"]')?.getAttribute('content')
-  if (novaToken) {
-    csrfToken = novaToken
-  }
-  
-  // Add CSRF token to form data as well
-  if (csrfToken) {
-    formData.append('_token', csrfToken)
-  }
-
-  const headers = {
-    'X-Requested-With': 'XMLHttpRequest',
-    'Accept': 'application/json'
-  }
-  
-  if (csrfToken) {
-    headers['X-CSRF-TOKEN'] = csrfToken
-  }
-
-  const response = await fetch('/nova-vendor/media-hub/media/save', {
-    method: 'POST',
-    body: formData,
-    headers: headers
-  })
-  
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`)
-  }
-  
-  const result = await response.json()
-  return result
-}
-
-function initUploadSection() {
-  const fileInput = document.querySelector('#file-input')
-  const uploadInfo = document.querySelector('#upload-info')
-  const fileCount = document.querySelector('#file-count')
-  const uploadBtn = document.querySelector('#upload-btn')
-
-  fileInput.addEventListener('change', function() {
-    const files = this.files
-    if (files.length > 0) {
-      fileCount.textContent = `${files.length} immagin${files.length > 1 ? 'i' : 'e'} selezionat${files.length > 1 ? 'e' : 'a'}`
-      // uploadBtn.textContent = `Carica ${files.length} immagin${files.length > 1 ? 'i' : 'e'}`
-      uploadInfo.style.display = 'block'
-    } else {
-      uploadInfo.style.display = 'none'
-    }
-  })
-
-  uploadBtn.addEventListener('click', async function() {
-    const files = fileInput.files
-    if (files.length === 0) return
-
-    // Disable button and show loading
-    uploadBtn.disabled = true
-    uploadBtn.textContent = 'Caricamento in corso...'
-
-    try {
-      const uploadedFiles = await uploadToMediaHub(files)
-      const mediaList = uploadedFiles.media
-      
-      // Reset form
-      fileInput.value = ''
-      uploadInfo.style.display = 'none'
-      
-      // Reload images to show new uploads
-      await lastImage()
-
-      //Seleziona automaticamente le immagini caricate
-      const container = document.querySelector('#card-container')
-      mediaList.forEach(media => {
-        const card = container.querySelector(`.checkboxes[data-id="${media.id}"]`)
-        if (card) {
-          const checkbox = card.querySelector('input[type="checkbox"]')
-          if (checkbox && !checkbox.checked) {
-            checkbox.checked = true
-            selectCard(card)
-          }
-        }
-      })
-
-
-      // alert(`${files.length} immagin${files.length > 1 ? 'i' : 'e'} caricate con successo!`)
-      
-    } catch (error) {
-      console.error('Errore durante il caricamento:', error)
-      // alert('Errore durante il caricamento delle immagini')
-    }
-    
-    // Re-enable button
-    uploadBtn.disabled = false
-  })
+  // Initialize drag and drop functionality
+  initDragAndDrop()
 }
 
 function searchImages(query) {
@@ -345,21 +268,17 @@ function searchImages(query) {
 
     sliderDimensions(3)
     printCards(cards, container)
+    
+    // Reinitialize upload and drag/drop after search
+    initUploadSection()
+    initDragAndDrop()
   })
 }
 
+// Print cards in the container
 function printCards(cards, container, range = 3) {
-  // Reset container (except upload section)
-  container.innerHTML = `
-    <div id="upload-section">
-      <p>Carica nuove immagini:</p>
-      <input type="file" id="file-input" multiple accept="image/*">
-      <div id="upload-info" style="display: none;">
-        <p id="file-count"></p>
-        <button type="button" id="upload-btn">Carica</button>
-      </div>
-    </div>
-  `
+  // Reset container and add upload card
+  container.innerHTML = getFileUploadCard()
 
   // Print cards on DOM
   if (cards.length > 0) {
@@ -388,7 +307,8 @@ function printCards(cards, container, range = 3) {
   activeCards()
 }
 
-function insetDataIntoEditor(editor) {
+// Insert shortcode into editor
+function insertShortcode(editor) {
   const form = document.querySelector('.tox-dialog__content-js form#data')
 
   form.addEventListener('submit', function (e) {
@@ -432,7 +352,6 @@ function searchInNova(keyword) {
               }
               // Debug response
           ).then(function (data) {
-        console.log(data.data)
         return data.data
       })
 
@@ -532,4 +451,293 @@ function deselectCard(card) {
   card.style.borderColor = '#e5e7eb';
   card.style.transform = 'translateY(0)';
   card.style.boxShadow = '0 2px 5px rgba(0,0,0,0.1)';
+}
+
+// === FILE UPLOAD === //
+
+// Get html of the upload card
+function getFileUploadCard() {
+  return `
+    <div id="upload-section" style="position: relative; display: flex; flex-direction: column; cursor: pointer; background-color: #ffffff; border-radius: 8px; overflow: hidden; transition: all 0.2s ease; height: 100%; border: 2px dashed #d1d5db; margin: 2px; justify-content: center; align-items: center; padding: 20px; text-align: center; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);">
+      <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 200px;">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 48px; height: 48px; color: #6b7280; margin-bottom: 12px;">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+        </svg>
+
+        <p id="upload-status-text" style="margin: 0 0 15px 0; font-size: 14px; color: #4b5563; font-weight: 500;">Carica nuove immagini</p>
+        <input type="file" id="file-input" multiple accept="image/*" style="display: none;">
+        <button type="button" id="main-upload-btn" onclick="handleUploadButtonClick()" style="background-color: #4f46e5; color: white; border: none; border-radius: 6px; padding: 8px 16px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 16px; height: 16px;">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          <span>Seleziona file</span>
+        </button>
+      </div>
+    </div>
+  `
+}
+
+// Observe file input changes and update UI
+function initUploadSection() {
+  const fileInput = document.querySelector('#file-input')
+
+  fileInput.addEventListener('change', function() {
+    const files = this.files
+    updateUploadUI(files.length)
+  })
+}
+
+// Update upload button and status text based on file count
+function updateUploadUI(fileCount) {
+  const uploadSection = document.querySelector('#upload-section')
+  const statusText = document.querySelector('#upload-status-text')
+  const mainBtn = document.querySelector('#main-upload-btn')
+  
+  if (fileCount > 0) {
+    // Stato con file selezionati
+    uploadSection.classList.add('upload-section-has-files')
+    statusText.textContent = `${fileCount} immagin${fileCount > 1 ? 'i' : 'e'} selezionat${fileCount > 1 ? 'e' : 'a'}`
+    
+    mainBtn.style.backgroundColor = '#10b981'
+    mainBtn.style.boxShadow = '0 2px 4px rgba(16, 185, 129, 0.2)'
+    mainBtn.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 16px; height: 16px;">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+      </svg>
+      <span>Carica</span>
+    `
+  } else {
+    // Stato iniziale senza file
+    statusText.textContent = 'Carica nuove immagini'
+    uploadSection.classList.remove('upload-section-has-files')
+    
+    mainBtn.style.backgroundColor = '#4f46e5'
+    mainBtn.style.boxShadow = '0 2px 4px rgba(79, 70, 229, 0.2)'
+    mainBtn.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 16px; height: 16px;">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+      </svg>
+      <span>Seleziona file</span>
+    `
+  }
+}
+
+// Handle upload button click 
+async function handleUploadButtonClick() {
+  const fileInput = document.querySelector('#file-input')
+  const files = fileInput.files
+  
+  if (files.length === 0) {
+    // Se non ci sono file, apri il selettore
+    fileInput.click()
+    return
+  }
+  
+  // Se ci sono file, procedi con l'upload
+  const mainBtn = document.querySelector('#main-upload-btn')
+  
+  // Disable button and show loading
+  mainBtn.disabled = true
+  mainBtn.innerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 16px; height: 16px; animation: spin 1s linear infinite;">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+    </svg>
+    <span>Caricamento...</span>
+  `
+
+  try {
+    const uploadedFiles = await uploadToMediaHub(files)
+    const mediaList = uploadedFiles.media
+    
+    // Reset form e UI
+    fileInput.value = ''
+    updateUploadUI(0)
+    
+    // Reload images to show new uploads
+    await lastImage()
+
+    // Seleziona automaticamente le immagini caricate
+    const container = document.querySelector('#card-container')
+    mediaList.forEach(media => {
+      const card = container.querySelector(`.checkboxes[data-id="${media.id}"]`)
+      if (card) {
+        const checkbox = card.querySelector('input[type="checkbox"]')
+        if (checkbox && !checkbox.checked) {
+          checkbox.checked = true
+          selectCard(card)
+        }
+      }
+    })
+
+  } catch (error) {
+    console.error('Errore durante il caricamento:', error)
+  }
+  
+  // Re-enable button
+  mainBtn.disabled = false
+}
+
+// Initialize drag and drop functionality
+function initDragAndDrop() {
+  const dropZone = document.querySelector('#drop-zone')
+  const cardContainer = document.querySelector('#drop-zone').parentElement // Now targets the outer container
+  const fileInput = document.querySelector('#file-input')
+  
+  let dragCounter = 0
+  let hideTimeout = null
+  
+  // Prevent default drag behaviors on the entire container
+  ;['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    cardContainer.addEventListener(eventName, preventDefaults, false)
+    document.body.addEventListener(eventName, preventDefaults, false)
+  })
+
+  // Highlight drop area when item is dragged over it
+  cardContainer.addEventListener('dragenter', function(e) {
+    dragCounter++
+    highlight(e)
+  }, false)
+
+  cardContainer.addEventListener('dragover', function(e) {
+    // Reset timeout on every dragover to keep drop zone visible
+    clearTimeout(hideTimeout)
+    highlight(e)
+  }, false)
+
+  cardContainer.addEventListener('dragleave', function(e) {
+    dragCounter--
+    if (dragCounter <= 0) {
+      // Add a small delay before hiding to prevent flickering
+      hideTimeout = setTimeout(() => {
+        unhighlight(e)
+      }, 100)
+    }
+  }, false)
+
+  cardContainer.addEventListener('drop', function(e) {
+    dragCounter = 0
+    clearTimeout(hideTimeout)
+    unhighlight(e)
+    handleDrop(e)
+  }, false)
+
+  // Also handle clicks on the drop zone
+  dropZone.addEventListener('click', function() {
+    fileInput.click()
+  })
+
+  // Keep drop zone visible when hovering over it
+  dropZone.addEventListener('dragover', function(e) {
+    clearTimeout(hideTimeout)
+    preventDefaults(e)
+  }, false)
+
+  dropZone.addEventListener('dragleave', function(e) {
+    // Only hide if leaving the drop zone itself
+    if (!dropZone.contains(e.relatedTarget)) {
+      hideTimeout = setTimeout(() => {
+        unhighlight(e)
+      }, 100)
+    }
+  }, false)
+
+  function preventDefaults(e) {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+
+  function highlight(e) {
+    // Only show drop zone if dragged items contain files
+    if (e.dataTransfer.types.includes('Files')) {
+      dropZone.style.display = 'flex'
+    }
+  }
+
+  function unhighlight(e) {
+    dragCounter = 0
+    dropZone.style.display = 'none'
+  }
+
+  function scrollToTop() {
+    const cardZone = document.querySelector('#card-imgs-zone')
+    cardZone.scroll(0,0)
+  }
+
+  function handleDrop(e) {
+    const dt = e.dataTransfer
+    const files = dt.files
+    scrollToTop()
+    
+    if (files.length > 0) {
+      // Filter to only image files
+      const imageFiles = Array.from(files).filter(file => file.type.startsWith('image/'))
+      
+      if (imageFiles.length > 0) {
+        // Create a new FileList-like object with only image files
+        const dataTransfer = new DataTransfer()
+        imageFiles.forEach(file => dataTransfer.items.add(file))
+        
+        // Set the files to the file input
+        fileInput.files = dataTransfer.files
+        
+        // Update UI to show selected files
+        updateUploadUI(imageFiles.length)
+        
+        // Hide drop zone
+        dropZone.style.display = 'none'
+      }
+    }
+  }
+}
+
+// Upload files to MediaHub using Fetch API
+async function uploadToMediaHub(files) {
+  const formData = new FormData()
+  
+  // Add all files with the 'files' parameter name (as array)
+  for (let i = 0; i < files.length; i++) {
+    formData.append('files[]', files[i])
+  }
+  
+  // Add collection name
+  formData.append('collectionName', 'default')
+  
+  // Get CSRF token from multiple sources
+  let csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
+                  document.querySelector('input[name="_token"]')?.value ||
+                  window.Laravel?.csrfToken ||
+                  document.querySelector('meta[name="_token"]')?.getAttribute('content')
+
+  // Try to get Nova's CSRF token
+  const novaToken = document.querySelector('meta[name="nova-csrf-token"]')?.getAttribute('content')
+  if (novaToken) {
+    csrfToken = novaToken
+  }
+  
+  // Add CSRF token to form data as well
+  if (csrfToken) {
+    formData.append('_token', csrfToken)
+  }
+
+  const headers = {
+    'X-Requested-With': 'XMLHttpRequest',
+    'Accept': 'application/json'
+  }
+  
+  if (csrfToken) {
+    headers['X-CSRF-TOKEN'] = csrfToken
+  }
+
+  const response = await fetch('/nova-vendor/media-hub/media/save', {
+    method: 'POST',
+    body: formData,
+    headers: headers
+  })
+  
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`)
+  }
+  
+  const result = await response.json()
+  return result
 }
