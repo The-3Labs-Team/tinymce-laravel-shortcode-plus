@@ -25,6 +25,11 @@ tinymce.PluginManager.add('button', function (editor, url) {
               { text: 'Primary', value: 'primary' },
               { text: 'Secondary', value: 'secondary' }
             ]
+          },
+          {
+            type: 'input',
+            name: 'forceLinkFb',
+            label: 'Force Link FB (optional)'
           }
         ]
       },
@@ -42,8 +47,13 @@ tinymce.PluginManager.add('button', function (editor, url) {
       onSubmit: function (api) {
         const data = api.getData()
         const level = data.level ? data.level : 'primary'
+        let shortcode = '[button link="' + data.link + '" label="' + data.label + '" level="' + level + '"'
+        if (data.forceLinkFb) {
+          shortcode += ' forceLinkFb="' + data.forceLinkFb + '"'
+        }
+        shortcode += ']'
         /* Insert content when the window form is submitted */
-        editor.insertContent('[button link="' + data.link + '" label="' + data.label + '" level="' + level + '"]')
+        editor.insertContent(shortcode)
         api.close()
       }
     })
