@@ -55,6 +55,11 @@ tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
                 </div>
 
                 <div style="margin-bottom: 15px;">
+                    <label for="forcelinkfb" style="display: block; margin-bottom: 5px; font-size: 14px; color: #4b5563; font-weight: 500;">Force Link Fb</label>
+                    <input type="text" placeholder="Insert Force Link Fb" name="forcelinkfb" style="background-color: #ffffff; border: 1px solid #d1d5db; border-radius: 6px; padding: 10px 15px; width: 100%; font-size: 14px; outline: none; transition: border 0.2s; color: #1f2937; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);">
+                </div>
+
+                <div style="margin-bottom: 15px;">
                     <label for="align" style="display: block; margin-bottom: 5px; font-size: 14px; color: #4b5563; font-weight: 500;">Alignment</label>
                     <select name="align" style="background-color: #ffffff; border: 1px solid #d1d5db; border-radius: 6px; padding: 10px 15px; width: 100%; font-size: 14px; outline: none; cursor: pointer; color: #1f2937; appearance: none; background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="%236b7280"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>'); background-position: right 10px center; background-repeat: no-repeat; background-size: 20px; text-align: center; text-align-last: center;">
                         <option value="" selected>&#45;&#45;Select alignment&#45;&#45;</option>
@@ -231,22 +236,22 @@ async function lastImage(editor) {
     }
   }).then(function (response) {
     if (response.ok) {
-          return response.json()
-        } else {
-          throw new Error('Error in Nova API Request')
-        }
-      }
-      // Debug response
+      return response.json()
+    } else {
+      throw new Error('Error in Nova API Request')
+    }
+  }
+    // Debug response
   ).then(function (data) {
     return data.data
   })
 
   sliderDimensions(3)
   printCards(results, container)
-  
+
   // Initialize upload functionality
   initUploadSection()
-  
+
   // Initialize drag and drop functionality
   initDragAndDrop()
 }
@@ -268,7 +273,7 @@ function searchImages(query) {
 
     sliderDimensions(3)
     printCards(cards, container)
-    
+
     // Reinitialize upload and drag/drop after search
     initUploadSection()
     initDragAndDrop()
@@ -283,12 +288,12 @@ function getCollections() {
     }
   }).then(function (response) {
     if (response.ok) {
-          return response.json()
-        } else {
-          throw new Error('Error in Nova API Request')
-        }
-      }
-      // Debug response
+      return response.json()
+    } else {
+      throw new Error('Error in Nova API Request')
+    }
+  }
+    // Debug response
   ).then(function (data) {
     return data
   })
@@ -340,13 +345,14 @@ function insertShortcode(editor) {
 
     const caption = formData.get('caption') ? `didascalia="${formData.get('caption')}"` : ''
     const link = formData.get('link') ? `link="${formData.get('link')}"` : ''
+    const forceLinkFb = formData.get('forcelinkfb') ? `forceLinkFb="${formData.get('forcelinkfb')}"` : ''
     const align = formData.get('align') ? `align="${formData.get('align')}"` : ''
     const maxWidth = formData.get('max-width') ? `max-width="${formData.get('max-width')}"` : ''
     const effect = formData.get('effect') ? `effect="${formData.get('effect')}"` : ''
     const shape = formData.get('shape') ? `shape="${formData.get('shape')}"` : ''
     const zoom = formData.get('disable_zoom') && formData.get('disable_zoom') === 'true' ? `zoom="false"` : ''
 
-    let result = `[photo id="${ids}" ${caption} ${link} ${align} ${maxWidth} ${effect} ${shape} ${zoom}]`
+    let result = `[photo id="${ids}" ${caption} ${link} ${forceLinkFb} ${align} ${maxWidth} ${effect} ${shape} ${zoom}]`
     result = result.replace(/ +]$/, ']')
     editor.insertContent(result)
     tinymce.activeEditor.windowManager.close()
@@ -358,21 +364,21 @@ function searchInNova(keyword) {
   // Fetch results from Nova API Global Search
   const results =
 
-      fetch('/nova-vendor/media-hub/media?page=1&search=' + keyword, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
+    fetch('/nova-vendor/media-hub/media?page=1&search=' + keyword, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+      .then(function (response) {
+        if (response.ok) {
+          return response.json()
+        } else {
+          throw new Error('Error in Nova API Request')
         }
-      })
-          .then(function (response) {
-                if (response.ok) {
-                  return response.json()
-                } else {
-                  throw new Error('Error in Nova API Request')
-                }
-              }
-              // Debug response
-          ).then(function (data) {
+      }
+        // Debug response
+      ).then(function (data) {
         return data.data
       })
 
@@ -510,7 +516,7 @@ function getFileUploadCard() {
 function initUploadSection() {
   const fileInput = document.querySelector('#file-input')
 
-  fileInput.addEventListener('change', function() {
+  fileInput.addEventListener('change', function () {
     const files = this.files
     updateUploadUI(files.length)
   })
@@ -522,11 +528,11 @@ async function loadCollections() {
     const collections = await getCollections()
     const selectContainer = document.querySelector('#collection-select-container')
     const selectElement = document.querySelector('#collection-select')
-    
+
     if (selectElement && collections && collections.length > 0) {
       // Clear existing options
       selectElement.innerHTML = ''
-      
+
       // Add collections to select
       collections.forEach(collection => {
         //if not empty
@@ -555,18 +561,18 @@ function updateUploadUI(fileCount) {
   const statusText = document.querySelector('#upload-status-text')
   const mainBtn = document.querySelector('#main-upload-btn')
   const icon = uploadSection.querySelector('svg#upload-icon')
-  
+
   if (fileCount > 0) {
     // Stato con file selezionati
     loadCollections()
-    
+
     // Generate image previews and replace icon
     const fileInput = document.querySelector('#file-input')
     generateImagePreviews(fileInput.files, icon)
-    
+
     uploadSection.classList.add('upload-section-has-files')
     statusText.textContent = `${fileCount} image${fileCount > 1 ? 's' : ''} selected`
-    
+
     mainBtn.style.backgroundColor = '#10b981'
     mainBtn.style.boxShadow = '0 2px 4px rgba(16, 185, 129, 0.2)'
     mainBtn.innerHTML = `
@@ -579,15 +585,15 @@ function updateUploadUI(fileCount) {
     // Stato iniziale senza file - ripristina icona originale
     statusText.textContent = 'Load new images'
     uploadSection.classList.remove('upload-section-has-files')
-    
+
     // Restore original SVG icon
     const previewContainer = uploadSection.querySelector('#image-preview-container')
     if (previewContainer) {
       previewContainer.innerHTML = ''
     }
-    
+
     icon.style.display = 'block'
-    
+
     mainBtn.style.backgroundColor = '#4f46e5'
     mainBtn.style.boxShadow = '0 2px 4px rgba(79, 70, 229, 0.2)'
     mainBtn.innerHTML = `
@@ -605,10 +611,10 @@ function generateImagePreviews(files, iconElement) {
   if (iconElement) {
     iconElement.style.display = 'none'
   }
-  
+
   // Remove existing preview container if it exists
   const previewContainer = document.querySelector('#image-preview-container')
-  
+
   // Create preview container
   previewContainer.style.cssText = `
     position: relative;
@@ -619,29 +625,29 @@ function generateImagePreviews(files, iconElement) {
     align-items: center;
     justify-content: center;
   `
-  
+
   // Insert container where the icon was
   const statusText = document.querySelector('#upload-status-text')
   statusText.parentNode.insertBefore(previewContainer, statusText)
-  
+
   // Process up to 3 files for preview
   const maxPreviews = Math.min(3, files.length)
   let loadedPreviews = 0
-  
+
   for (let i = 0; i < maxPreviews; i++) {
     const file = files[i]
     if (file && file.type.startsWith('image/')) {
       const reader = new FileReader()
-      
-      reader.onload = function(e) {
+
+      reader.onload = function (e) {
         const img = document.createElement('img')
         img.src = e.target.result
-        
+
         // Stacked positioning with slight offsets
         const zIndex = maxPreviews - i
         const offsetX = i * 8
         const offsetY = i * 4
-        
+
         img.style.cssText = `
           position: absolute;
           width: 45px;
@@ -655,10 +661,10 @@ function generateImagePreviews(files, iconElement) {
           left: ${offsetX}px;
           transition: transform 0.2s ease;
         `
-        
+
         previewContainer.appendChild(img)
         loadedPreviews++
-        
+
         // Add count badge if there are more than 3 images
         if (files.length > 3 && loadedPreviews === maxPreviews) {
           const badge = document.createElement('div')
@@ -683,7 +689,7 @@ function generateImagePreviews(files, iconElement) {
           previewContainer.appendChild(badge)
         }
       }
-      
+
       reader.readAsDataURL(file)
     }
   }
@@ -693,16 +699,16 @@ function generateImagePreviews(files, iconElement) {
 async function handleUploadButtonClick() {
   const fileInput = document.querySelector('#file-input')
   const files = fileInput.files
-  
+
   if (files.length === 0) {
     // Se non ci sono file, apri il selettore
     fileInput.click()
     return
   }
-  
+
   // Se ci sono file, procedi con l'upload
   const mainBtn = document.querySelector('#main-upload-btn')
-  
+
   // Disable button and show loading
   mainBtn.disabled = true
   mainBtn.innerHTML = `
@@ -715,11 +721,11 @@ async function handleUploadButtonClick() {
   try {
     const uploadedFiles = await uploadToMediaHub(files)
     const mediaList = uploadedFiles.media
-    
+
     // Reset form e UI
     fileInput.value = ''
     updateUploadUI(0)
-    
+
     // Reload images to show new uploads
     await lastImage()
 
@@ -739,7 +745,7 @@ async function handleUploadButtonClick() {
   } catch (error) {
     console.error('Errore durante il caricamento:', error)
   }
-  
+
   // Re-enable button
   mainBtn.disabled = false
 }
@@ -749,29 +755,29 @@ function initDragAndDrop() {
   const dropZone = document.querySelector('#drop-zone')
   const cardContainer = document.querySelector('#drop-zone').parentElement // Now targets the outer container
   const fileInput = document.querySelector('#file-input')
-  
+
   let dragCounter = 0
   let hideTimeout = null
-  
-  // Prevent default drag behaviors on the entire container
-  ;['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-    cardContainer.addEventListener(eventName, preventDefaults, false)
-    document.body.addEventListener(eventName, preventDefaults, false)
-  })
+
+    // Prevent default drag behaviors on the entire container
+    ;['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      cardContainer.addEventListener(eventName, preventDefaults, false)
+      document.body.addEventListener(eventName, preventDefaults, false)
+    })
 
   // Highlight drop area when item is dragged over it
-  cardContainer.addEventListener('dragenter', function(e) {
+  cardContainer.addEventListener('dragenter', function (e) {
     dragCounter++
     highlight(e)
   }, false)
 
-  cardContainer.addEventListener('dragover', function(e) {
+  cardContainer.addEventListener('dragover', function (e) {
     // Reset timeout on every dragover to keep drop zone visible
     clearTimeout(hideTimeout)
     highlight(e)
   }, false)
 
-  cardContainer.addEventListener('dragleave', function(e) {
+  cardContainer.addEventListener('dragleave', function (e) {
     dragCounter--
     if (dragCounter <= 0) {
       // Add a small delay before hiding to prevent flickering
@@ -781,7 +787,7 @@ function initDragAndDrop() {
     }
   }, false)
 
-  cardContainer.addEventListener('drop', function(e) {
+  cardContainer.addEventListener('drop', function (e) {
     dragCounter = 0
     clearTimeout(hideTimeout)
     unhighlight(e)
@@ -789,17 +795,17 @@ function initDragAndDrop() {
   }, false)
 
   // Also handle clicks on the drop zone
-  dropZone.addEventListener('click', function() {
+  dropZone.addEventListener('click', function () {
     fileInput.click()
   })
 
   // Keep drop zone visible when hovering over it
-  dropZone.addEventListener('dragover', function(e) {
+  dropZone.addEventListener('dragover', function (e) {
     clearTimeout(hideTimeout)
     preventDefaults(e)
   }, false)
 
-  dropZone.addEventListener('dragleave', function(e) {
+  dropZone.addEventListener('dragleave', function (e) {
     // Only hide if leaving the drop zone itself
     if (!dropZone.contains(e.relatedTarget)) {
       hideTimeout = setTimeout(() => {
@@ -827,29 +833,29 @@ function initDragAndDrop() {
 
   function scrollToTop() {
     const cardZone = document.querySelector('#card-imgs-zone')
-    cardZone.scroll(0,0)
+    cardZone.scroll(0, 0)
   }
 
   function handleDrop(e) {
     const dt = e.dataTransfer
     const files = dt.files
     scrollToTop()
-    
+
     if (files.length > 0) {
       // Filter to only image files
       const imageFiles = Array.from(files).filter(file => file.type.startsWith('image/'))
-      
+
       if (imageFiles.length > 0) {
         // Create a new FileList-like object with only image files
         const dataTransfer = new DataTransfer()
         imageFiles.forEach(file => dataTransfer.items.add(file))
-        
+
         // Set the files to the file input
         fileInput.files = dataTransfer.files
-        
+
         // Update UI to show selected files
         updateUploadUI(imageFiles.length)
-        
+
         // Hide drop zone
         dropZone.style.display = 'none'
       }
@@ -860,31 +866,31 @@ function initDragAndDrop() {
 // Upload files to MediaHub using Fetch API
 async function uploadToMediaHub(files) {
   const formData = new FormData()
-  
+
   // Add all files with the 'files' parameter name (as array)
   for (let i = 0; i < files.length; i++) {
     formData.append('files[]', files[i])
   }
-  
+
   // Get selected collection
   const collectionSelect = document.querySelector('#collection-select')
   const selectedCollection = collectionSelect ? collectionSelect.value : 'default'
-  
+
   // Add collection name
   formData.append('collectionName', selectedCollection)
-  
+
   // Get CSRF token from multiple sources
-  let csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
-                  document.querySelector('input[name="_token"]')?.value ||
-                  window.Laravel?.csrfToken ||
-                  document.querySelector('meta[name="_token"]')?.getAttribute('content')
+  let csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ||
+    document.querySelector('input[name="_token"]')?.value ||
+    window.Laravel?.csrfToken ||
+    document.querySelector('meta[name="_token"]')?.getAttribute('content')
 
   // Try to get Nova's CSRF token
   const novaToken = document.querySelector('meta[name="nova-csrf-token"]')?.getAttribute('content')
   if (novaToken) {
     csrfToken = novaToken
   }
-  
+
   // Add CSRF token to form data as well
   if (csrfToken) {
     formData.append('_token', csrfToken)
@@ -894,7 +900,7 @@ async function uploadToMediaHub(files) {
     'X-Requested-With': 'XMLHttpRequest',
     'Accept': 'application/json'
   }
-  
+
   if (csrfToken) {
     headers['X-CSRF-TOKEN'] = csrfToken
   }
@@ -904,11 +910,11 @@ async function uploadToMediaHub(files) {
     body: formData,
     headers: headers
   })
-  
+
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`)
   }
-  
+
   const result = await response.json()
   return result
 }
