@@ -3,6 +3,48 @@
 tinymce.PluginManager.add('preview', function (editor, url) {
     let isActive = false;
 
+    editor.on('click', function (e) {
+        const target = e.target;
+
+        console.log('PREVIEW Test 5');
+
+        // Controlla se è uno span con data-preview-shortcode
+        if (target.classList.contains('shortcode-preview')) {
+            e.preventDefault();
+
+            // Trova lo span parent
+            const previewSpan = target.closest('[data-preview-shortcode]');
+            if (!previewSpan) return;
+
+            // Get shortcode dal data attribute
+            const shortcode = previewSpan.getAttribute('data-preview-shortcode').replace(/&quot;/g, '"');
+            const shortcodeName = previewSpan.getAttribute('data-preview-shortcode-name');
+
+            console.log('PREVIEW - Shortcode:', shortcode);
+
+            // Passa lo shortcode al comando con una callback per ricevere il risultato
+            editor.execCommand(`mceEditShortcode_${shortcodeName}`, false, {
+                shortcode: shortcode,
+                onSave: function (newShortcode) {
+                    console.log('PREVIEW - Nuovo shortcode ricevuto:', newShortcode);
+
+                    // Aggiorna l'attributo data-preview-shortcode
+                    const encodedShortcode = newShortcode.replace(/"/g, '&quot;');
+                    previewSpan.setAttribute('data-preview-shortcode', encodedShortcode);
+
+                    // Rigenera solo questo preview element
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = parseFromShortcodesToPreview(newShortcode);
+                    const newPreviewSpan = tempDiv.firstChild;
+
+                    previewSpan.parentNode.replaceChild(newPreviewSpan, previewSpan);
+
+                    editor.nodeChanged();
+                }
+            });
+        }
+    });
+
     /**
      * GetContent: Trasforma i placeholder in shortcode all'output
      * Questo viene eseguito quando il contenuto viene estratto dall'editor
@@ -47,6 +89,10 @@ tinymce.PluginManager.add('preview', function (editor, url) {
                 // Cleanup se necessario
             };
         },
+    });
+
+    editor.addCommand('showPreview', function () {
+        showPreview(editor);
     });
 
     return {
@@ -95,8 +141,8 @@ function parseFromPreviewToShortcodes(content) {
 }
 
 /* Function to create preview element container (span with data-preview-shortcode) */
-function createPreviewElement(shortcode, previewHtml) {
-    return `<span contenteditable="false" data-preview-shortcode="${shortcode}">
+function createPreviewElement(shortcodeName, shortcode, previewHtml) {
+    return `<span contenteditable="false" data-preview-shortcode-name="${shortcodeName}" data-preview-shortcode="${shortcode}">
         ${previewHtml}
     </span>`
 }
@@ -129,7 +175,9 @@ function parseButton(content) {
             levelStyle = 'background-color: #9f9f9f; color: white;';
         }
 
-        return createPreviewElement(parsedShortcode, `<a href="${$link}" class="button-preview" style="display:inline-block; padding: 10px 20px; border-radius: 10px; text-align: center; text-decoration:none; ${levelStyle}">${$label}</a>`);
+        const html = `<a href="${$link}" class="shortcode-preview" style="display:inline-block; padding: 10px 20px; border-radius: 10px; text-align: center; text-decoration:none; ${levelStyle}">${$label}</a>`
+
+        return createPreviewElement('button', parsedShortcode, html);
     });
 
     return content;
