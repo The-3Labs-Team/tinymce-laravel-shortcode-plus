@@ -6,7 +6,7 @@ tinymce.PluginManager.add('preview', function (editor, url) {
     editor.on('click', function (e) {
         const target = e.target;
 
-        console.log('PREVIEW Test 5');
+        console.log('PREVIEW Test 9');
 
         // Controlla se è uno span con data-preview-shortcode
         if (target.classList.contains('shortcode-preview')) {
@@ -23,23 +23,9 @@ tinymce.PluginManager.add('preview', function (editor, url) {
             console.log('PREVIEW - Shortcode:', shortcode);
 
             // Passa lo shortcode al comando con una callback per ricevere il risultato
-            editor.execCommand(`mceEditShortcode_${shortcodeName}`, false, {
-                shortcode: shortcode,
-                onSave: function (newShortcode) {
-                    console.log('PREVIEW - Nuovo shortcode ricevuto:', newShortcode);
-
-                    // Aggiorna l'attributo data-preview-shortcode
-                    const encodedShortcode = newShortcode.replace(/"/g, '&quot;');
-                    previewSpan.setAttribute('data-preview-shortcode', encodedShortcode);
-
-                    // Rigenera solo questo preview element
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = parseFromShortcodesToPreview(newShortcode);
-                    const newPreviewSpan = tempDiv.firstChild;
-
-                    previewSpan.parentNode.replaceChild(newPreviewSpan, previewSpan);
-
-                    editor.nodeChanged();
+            editor.execCommand(`mceEditShortcode_${shortcodeName}`, {
+                selectedShortcode: shortcode, previewCallback: function () {
+                    showPreview(editor);
                 }
             });
         }
@@ -92,7 +78,9 @@ tinymce.PluginManager.add('preview', function (editor, url) {
     });
 
     editor.addCommand('showPreview', function () {
-        showPreview(editor);
+        if (isActive) {
+            showPreview(editor);
+        }
     });
 
     return {
@@ -127,6 +115,7 @@ function hidePreview(editor) {
 /* Convert from shortcodes to preview spans */
 function parseFromShortcodesToPreview(content) {
     content = parseButton(content);
+    content = parseTrivia(content);
 
     return content;
 }
@@ -183,3 +172,22 @@ function parseButton(content) {
     return content;
 }
 
+
+/* Parse [trivia] shortcode to preview element */
+function parseTrivia(content) {
+    const triviaRegex = /\[trivia(?:\s+[^\]]+)?\]/g;
+
+    content = content.replace(triviaRegex, function (match) {
+        const triviaShortcode = match;
+        const parsedShortcode = triviaShortcode.replace(/"/g, '&quot;');
+
+        const idMatch = triviaShortcode.match(/id=["']([^"']*)["']/);
+        const id = idMatch ? idMatch[1] : 'N/A';
+
+        const html = `<span class="shortcode-preview" style="display:inline-block; padding: 8px 16px; border-radius: 8px; text-align: center; background-color: #8b5cf6; color: white; font-size: 14px;">🎮 Trivia ID: ${id}</span>`;
+
+        return createPreviewElement('trivia', parsedShortcode, html);
+    });
+
+    return content;
+}

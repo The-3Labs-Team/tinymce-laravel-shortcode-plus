@@ -1,21 +1,9 @@
 /* global tinymce */
 
 tinymce.PluginManager.add('button', function (editor, url) {
-  const openDialog = function (options = {}) {
-    const { shortcode = null, onSave = null } = options
+  const openDialog = function (selectedShortcode) {
 
-    // Se è stato passato uno shortcode direttamente, usalo
-    let selectedText = shortcode
-    let isEditMode = !!shortcode
-
-    // Altrimenti ottieni la selezione corrente
-    if (!selectedText) {
-      selectedText = editor.selection.getContent({ format: 'text' })
-      const buttonRegex = /^\[button(?:\s+[^\]]+)?\]$/
-      isEditMode = buttonRegex.test(selectedText)
-    }
-
-    // Estrai i valori dallo shortcode
+    const buttonRegex = /^\[button(?:\s+[^\]]+)?\]$/
     let initialData = {
       link: '',
       label: '',
@@ -23,11 +11,11 @@ tinymce.PluginManager.add('button', function (editor, url) {
       forceLinkFb: ''
     }
 
-    if (selectedText && selectedText.startsWith('[button')) {
-      const linkMatch = selectedText.match(/link=["']([^"']*)["']/)
-      const labelMatch = selectedText.match(/label=["']([^"']*)["']/)
-      const levelMatch = selectedText.match(/level=["']([^"']*)["']/)
-      const forceLinkFbMatch = selectedText.match(/forceLinkFb=["']([^"']*)["']/)
+    if (selectedShortcode && buttonRegex.test(selectedShortcode)) {
+      const linkMatch = selectedShortcode.match(/link=["']([^"']*)["']/)
+      const labelMatch = selectedShortcode.match(/label=["']([^"']*)["']/)
+      const levelMatch = selectedShortcode.match(/level=["']([^"']*)["']/)
+      const forceLinkFbMatch = selectedShortcode.match(/forceLinkFb=["']([^"']*)["']/)
 
       if (linkMatch) initialData.link = linkMatch[1]
       if (labelMatch) initialData.label = labelMatch[1]
@@ -87,18 +75,8 @@ tinymce.PluginManager.add('button', function (editor, url) {
         }
         shortcode += ']'
 
-        // Se è stata passata una callback (edit mode dal preview), chiamala
-        if (onSave) {
-          onSave(shortcode)
-        } else {
-          // Altrimenti usa il comportamento normale (inserimento/sostituzione)
-          if (isEditMode) {
-            editor.selection.setContent(shortcode)
-          } else {
-            editor.insertContent(shortcode)
-          }
-        }
-
+        editor.insertContent(shortcode)
+        editor.execCommand('showPreview');
         api.close()
       },
     })
@@ -106,8 +84,8 @@ tinymce.PluginManager.add('button', function (editor, url) {
   }
 
   /* Registra un comando per aprire il dialog */
-  editor.addCommand('mceEditShortcode_button', function (ui, value) {
-    openDialog(value || {})
+  editor.addCommand('mceEditShortcode_button', function (args) {
+    openDialog(args.selectedShortcode)
   })
 
   /* Add a button icon */

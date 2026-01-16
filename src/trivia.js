@@ -46,31 +46,41 @@ tinymce.PluginManager.add('trivia', function (editor, url) {
   </style>
 `
 
+  const openDialog = function (selectedShortcode) {
+    console.log('PREVIEW - TRIVIA', selectedShortcode);
+    tinymce.activeEditor.windowManager.open({
+      title: 'Trivia',
+      body: {
+        type: 'panel',
+        items: [
+          {
+            type: 'htmlpanel',
+            html: customStyles + content
+          }
+        ]
+      }
+    })
+    // Get last trivia
+    lastTrivia()
+
+    // Search Image
+    searchTrivia()
+
+    // Insert into editor
+    insetDataTrivia(editor)
+  }
+
   editor.ui.registry.addButton('trivia', {
     icon: 'trivia',
     tooltip: 'Add trivia',
     onAction: function () {
-      tinymce.activeEditor.windowManager.open({
-        title: 'Trivia',
-        body: {
-          type: 'panel',
-          items: [
-            {
-              type: 'htmlpanel',
-              html: customStyles + content
-            }
-          ]
-        }
-      })
-      // Get last trivia
-      lastTrivia()
-
-      // Search Image
-      searchTrivia()
-
-      // Insert into editor
-      insetDataTrivia(editor)
+      openDialog()
     }
+  })
+
+  /* Registra un comando per aprire il dialog */
+  editor.addCommand('mceEditShortcode_trivia', function (ui, value) {
+    openDialog(value || {})
   })
 
   /* Add a icon */
@@ -124,7 +134,7 @@ function printTrivia(trivias) {
   // Reset container
   lastTriviaContainer.innerHTML = ''
 
-  if(trivias.length > 0) {
+  if (trivias.length > 0) {
     trivias.forEach((trivia, index) => {
       lastTriviaContainer.innerHTML += `
         <tr style="border-bottom: 1px solid #ababab; cursor: pointer; position: relative" >
@@ -136,7 +146,7 @@ function printTrivia(trivias) {
             </td>
         <tr>
   `
-  })
+    })
   } else {
     lastTriviaContainer.innerHTML = 'No trivia found'
   }
@@ -173,6 +183,7 @@ function insetDataTrivia(editor) {
 
     const result = `[trivia id="${id}"]`
     editor.insertContent(result)
+    editor.execCommand('showPreview');
     tinymce.activeEditor.windowManager.close()
   })
 }
