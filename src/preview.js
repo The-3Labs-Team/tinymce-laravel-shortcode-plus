@@ -6,8 +6,6 @@ tinymce.PluginManager.add('preview', function (editor, url) {
     editor.on('click', function (e) {
         let target = null;
 
-        console.log('PREVIEW Test 13');
-
         if (e.target.classList.contains('shortcode-preview')) {
             target = e.target;
         } else if (e.target.parentNode.classList.contains('shortcode-preview') || false) {
