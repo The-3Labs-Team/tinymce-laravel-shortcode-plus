@@ -146,8 +146,11 @@ function parseFromShortcodesToPreview(content) {
     content = parseSpoiler(content);
     content = parseFaq(content);
 
-    // === SOCIALS === //
+    // === GAME === //
     content = parseTrivia(content);
+    content = parseSurvey(content);
+
+    // === SOCIALS === //
     content = parseFacebook(content);
     content = parseInstagram(content);
     content = parseTwitter(content);
@@ -293,6 +296,26 @@ function parseTrivia(content) {
         🎮 <br /> Trivia ID: ${id}</span></span>`;
 
         return createPreviewElement('trivia', parsedShortcode, html);
+    });
+
+    return content;
+}
+
+function parseSurvey(content) {
+    const surveyRegex = /\[survey(?:\s+[^\]]+)?\]/g;
+
+    content = content.replace(surveyRegex, function (match) {
+        const surveyShortcode = match;
+        const parsedShortcode = surveyShortcode.replace(/"/g, '&quot;');
+
+        const idMatch = surveyShortcode.match(/id=["']([^"']*)["']/);
+        const id = idMatch ? idMatch[1] : 'N/A';
+
+        const html = `<span class="shortcode-preview" style="display:inline-block; border-radius: 10px; border: 2px dashed #4bc444; font-size: 14px; width: 80%;">
+        <span style="display: block; text-align: center; font-weight: 500; color: #969696; padding: 50px 10px;">
+        ❓ <br /> Survey ID: ${id}</span></span>`;
+
+        return createPreviewElement('survey', parsedShortcode, html);
     });
 
     return content;
