@@ -142,6 +142,9 @@ function hidePreview(editor) {
 /* Convert from shortcodes to preview spans */
 function parseFromShortcodesToPreview(content) {
     content = parseButton(content);
+    content = parseDistico(content);
+    content = parseSpoiler(content);
+    // === SOCIALS === //
     content = parseTrivia(content);
     content = parseFacebook(content);
     content = parseInstagram(content);
@@ -172,7 +175,6 @@ function createPreviewElement(shortcodeName, shortcode, previewHtml) {
 
 // === ALL SHORTCODE PARSERS BELOW === //
 
-/* Parse [button] shortcode to preview element */
 function parseButton(content) {
     //Trova tutti gli shortcode button presente nel contenuto [button --- ANY TEXT ---]
     const buttonRegex = /\[button(?:\s+[^\]]+)?\]/g;
@@ -206,8 +208,45 @@ function parseButton(content) {
     return content;
 }
 
+function parseDistico(content) {
+    //Trova tutti gli shortcode button presente nel contenuto [distico]--- ANY TEXT ---[/distico]
+    const disticoRegex = /\[distico(?:\s+[^\]]+)?\](.*?)\[\/distico\]/gs;
 
-/* Parse [trivia] shortcode to preview element */
+    //Sostituisci ogni shortcode con il contenuto di anteprima
+    content = content.replace(disticoRegex, function (match) {
+        const disticoShortcode = match;
+        const parsedShortcode = disticoShortcode.replace(/"/g, '&quot;');
+
+        const text = disticoShortcode.match(/\[distico(?:\s+[^\]]+)?\](.*?)\[\/distico\]/s);
+        const disticoText = text ? text[1].trim() : '';
+
+        const html = `<span class="shortcode-preview" style="display:inline-block; border-radius: 8px; border: 1px solid #7e7e7e; font-size: 14px; color: #1c1c1c; font-style: italic; padding: 10px">${disticoText}</span>`
+
+        return createPreviewElement('distico', parsedShortcode, html);
+    });
+
+    return content;
+}
+
+function parseSpoiler(content) {
+    //Trova tutti gli shortcode button presente nel contenuto [distico]--- ANY TEXT ---[/distico]
+    const disticoRegex = /\[spoiler(?:\s+[^\]]+)?\](.*?)\[\/spoiler\]/gs;
+
+    //Sostituisci ogni shortcode con il contenuto di anteprima
+    content = content.replace(disticoRegex, function (match) {
+        const spoilerShortcode = match;
+        const parsedShortcode = spoilerShortcode.replace(/"/g, '&quot;');
+
+        const text = spoilerShortcode.match(/\[spoiler(?:\s+[^\]]+)?\](.*?)\[\/spoiler\]/s);
+        const spoilerText = text ? text[1].trim() : '';
+        const html = `<span class="shortcode-preview" style="display:inline-block; border-radius: 8px; border: 2px dashed #959595; background: #fff0d5; font-size: 14px; padding: 10px 15px;">👁️ ${spoilerText}</span>`
+
+        return createPreviewElement('spoiler', parsedShortcode, html);
+    });
+
+    return content;
+}
+
 function parseTrivia(content) {
     const triviaRegex = /\[trivia(?:\s+[^\]]+)?\]/g;
 
@@ -228,6 +267,7 @@ function parseTrivia(content) {
     return content;
 }
 
+// SOCIALS //
 function parseFacebook(content) {
     const facebookRegex = /\[facebook(?:\s+[^\]]+)?\]/g;
 
