@@ -239,7 +239,7 @@ function parseWidgetbay(content) {
 
         const html = `<span class="shortcode-preview" style="display:inline-block; border-radius: 10px; border: 2px dashed #14b8a6; font-size: 14px; width: 80%;">
             <span style="display: block; text-align: center; font-weight: 500; color: #969696; padding: 50px 10px;">
-                🛒
+                🛒 Widgetbox
                 <br /> ${id ? 'ID: ' + id : link}
             </span>
         </span>`
