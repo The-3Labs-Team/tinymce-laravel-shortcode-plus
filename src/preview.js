@@ -142,6 +142,7 @@ function hidePreview(editor) {
 /* Convert from shortcodes to preview spans */
 function parseFromShortcodesToPreview(content) {
     content = parseButton(content);
+    content = parseWidgetbay(content);
     content = parseDistico(content);
     content = parseSpoiler(content);
     content = parseFaq(content);
@@ -213,6 +214,44 @@ function parseButton(content) {
 
     return content;
 }
+
+function parseWidgetbay(content) {
+    //Trova tutti gli shortcode button presente nel contenuto [button --- ANY TEXT ---]
+    const buttonRegex = /\[widgetbay(?:\s+[^\]]+)?\]/g;
+
+    //Sostituisci ogni shortcode con il contenuto di anteprima
+    content = content.replace(buttonRegex, function (match) {
+        const buttonShortcode = match;
+        const parsedShortcode = buttonShortcode.replace(/"/g, '&quot;');
+
+        let id = buttonShortcode.match(/id=["']([^"']*)["']/);
+        id = id ? id[1] : null;
+
+        let link = buttonShortcode.match(/link=["']([^"']*)["']/);
+        link = link ? link[1] : null;
+
+        let forceLink = buttonShortcode.match(/forcelink=["']([^"']*)["']/);
+        forceLink = forceLink ? forceLink[1] : null;
+
+        let title = buttonShortcode.match(/label=["']([^"']*)["']/);
+        title = title ? title[1] : null;
+
+        let price = buttonShortcode.match(/price=["']([^"']*)["']/);
+        price = price ? price[1] : null;
+
+        const html = `<span class="shortcode-preview" style="display:inline-block; border-radius: 10px; border: 2px dashed #14b8a6; font-size: 14px; width: 80%;">
+            <span style="display: block; text-align: center; font-weight: 500; color: #969696; padding: 50px 10px;">
+                🛒
+                <br /> ${id ? 'ID: ' + id : link}
+            </span>
+        </span>`
+
+        return createPreviewElement('widgetbay', parsedShortcode, html);
+    });
+
+    return content;
+}
+
 
 function parseDistico(content) {
     //Trova tutti gli shortcode button presente nel contenuto [distico]--- ANY TEXT ---[/distico]

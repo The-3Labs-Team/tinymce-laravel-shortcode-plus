@@ -79,24 +79,61 @@ tinymce.PluginManager.add('widgetbay', function (editor, url) {
   /* Add a spoiler icon */
   editor.ui.registry.addIcon('widgetbay', '<svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M345 39.1L472.8 168.4c52.4 53 52.4 138.2 0 191.2L360.8 472.9c-9.3 9.4-24.5 9.5-33.9 .2s-9.5-24.5-.2-33.9L438.6 325.9c33.9-34.3 33.9-89.4 0-123.7L310.9 72.9c-9.3-9.4-9.2-24.6 .2-33.9s24.6-9.2 33.9 .2zM0 229.5V80C0 53.5 21.5 32 48 32H197.5c17 0 33.3 6.7 45.3 18.7l168 168c25 25 25 65.5 0 90.5L277.3 442.7c-25 25-65.5 25-90.5 0l-168-168C6.7 262.7 0 246.5 0 229.5zM144 144a32 32 0 1 0 -64 0 32 32 0 1 0 64 0z"/></svg>')
 
+  const openDialog = function (selectedShortcode) {
+    const widgetbayRegex = /^\[widgetbay(?:\s+[^\]]+)?\]$/
+    let initialData = {
+      id: null,
+      title: null,
+      links: null,
+      forceLink: null,
+      price: null
+    }
+
+    if (selectedShortcode && widgetbayRegex.test(selectedShortcode)) {
+      const idMatch = selectedShortcode.match(/id=["']([^"']*)["']/)
+      const titleMatch = selectedShortcode.match(/title=["']([^"']*)["']/)
+      const linkMatch = selectedShortcode.match(/link=["']([^"']*)["']/)
+      const forceLinkMatch = selectedShortcode.match(/forceLink=["']([^"']*)["']/)
+      const priceMatch = selectedShortcode.match(/price=["']([^"']*)["']/)
+
+      const links = linkMatch ? linkMatch[1].split(',') : []
+
+
+      initialData.links = links
+      initialData.id = idMatch ? idMatch[1] : null
+      initialData.title = titleMatch ? titleMatch[1] : null
+      initialData.forceLink = forceLinkMatch ? forceLinkMatch[1] : null
+      initialData.price = priceMatch ? priceMatch[1] : null
+    }
+
+    tinymce.activeEditor.windowManager.open({
+      title: 'Widgetbay',
+      initialData: initialData,
+      body: {
+        type: 'panel',
+        items: [
+          {
+            type: 'htmlpanel',
+            html: customStyles + content
+          }
+        ]
+      }
+    })
+    generateShortcode()
+
+    fillInitialData(initialData)
+  }
+
+  editor.addCommand('mceEditShortcode_widgetbay', function (args) {
+    openDialog(args.selectedShortcode)
+  })
+
   /* Add a button that opens a window */
   editor.ui.registry.addButton('widgetbay', {
     icon: 'widgetbay',
     tooltip: 'Add Widgetbay iframe',
     onAction: function () {
-      tinymce.activeEditor.windowManager.open({
-        title: 'Widgetbay',
-        body: {
-          type: 'panel',
-          items: [
-            {
-              type: 'htmlpanel',
-              html: customStyles + content
-            }
-          ]
-        }
-      })
-      generateShortcode()
+      openDialog()
     }
   })
 
@@ -111,7 +148,9 @@ tinymce.PluginManager.add('widgetbay', function (editor, url) {
   }
 })
 
-function addNewLink () {
+
+
+function addNewLink() {
   const linksBox = document.getElementById('links-box')
 
   const links = linksBox.getElementsByTagName('input')
@@ -123,9 +162,10 @@ function addNewLink () {
   newLink.style.margin = '5px 0'
 
   linksBox.appendChild(newLink)
+  editor.execCommand('showPreview');
 }
 
-function generateShortcode () {
+function generateShortcode() {
   const formQuery = document.querySelector('#widgetbay-form')
 
   formQuery.addEventListener('submit', function (e) {
@@ -150,6 +190,34 @@ function generateShortcode () {
     const content = '[widgetbay ' + parsedId + parsedLink + parsedTitle + parsedForceLink + parsedPrice + ']'
 
     tinymce.activeEditor.insertContent(content)
+    tinymce.activeEditor.execCommand('showPreview');
     tinymce.activeEditor.windowManager.close()
   })
+}
+
+function fillInitialData(initialData) {
+  const idField = document.querySelector('input[name="widget-id"]')
+  const linkField = document.querySelector('input[name="widget-url"]')
+  const titleField = document.querySelector('input[name="widget-title"]')
+  const forceLinkField = document.querySelector('input[name="widget-force-link"]')
+  const priceField = document.querySelector('input[name="widget-price"]')
+  const linksBox = document.getElementById('links-box')
+
+  initialData.links.forEach((link, index) => {
+    if (index === 0) return // skip first link, it's already in the form
+
+    const newLink = document.createElement('input')
+    newLink.type = 'text'
+    newLink.name = 'widget-url-' + index
+    newLink.style.margin = '5px 0'
+    newLink.value = link
+
+    linksBox.appendChild(newLink)
+  })
+
+  linkField.value = initialData.links ? initialData.links[0] : null
+  idField.value = initialData.id || null
+  titleField.value = initialData.title || null
+  forceLinkField.value = initialData.forceLink || null
+  priceField.value = initialData.price || null
 }
