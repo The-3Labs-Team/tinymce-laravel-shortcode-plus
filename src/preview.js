@@ -144,6 +144,8 @@ function parseFromShortcodesToPreview(content) {
     content = parseButton(content);
     content = parseDistico(content);
     content = parseSpoiler(content);
+    content = parseFaq(content);
+
     // === SOCIALS === //
     content = parseTrivia(content);
     content = parseFacebook(content);
@@ -239,9 +241,38 @@ function parseSpoiler(content) {
 
         const text = spoilerShortcode.match(/\[spoiler(?:\s+[^\]]+)?\](.*?)\[\/spoiler\]/s);
         const spoilerText = text ? text[1].trim() : '';
-        const html = `<span class="shortcode-preview" style="display:inline-block; border-radius: 8px; border: 2px dashed #959595; background: #fff0d5; font-size: 14px; padding: 10px 15px;">👁️ ${spoilerText}</span>`
+
+        const html = `<span class="shortcode-preview" style="display:inline-block; border-radius: 8px; border: 1px solid #ffd07a; font-size: 14px; padding: 10px 15px;">👁️ <br /> ${spoilerText}</span>`
 
         return createPreviewElement('spoiler', parsedShortcode, html);
+    });
+
+    return content;
+}
+
+function parseFaq(content) {
+    const faqRegex = /\[faq(?:\s+[^\]]+)?\](.*?)\[\/faq\]/gs;
+    //[faq title="Domanda"]Risposta[/faq]
+
+    content = content.replace(faqRegex, function (match) {
+        const faqShortcode = match;
+        const parsedShortcode = faqShortcode.replace(/"/g, '&quot;');
+
+        let title = faqShortcode.match(/title=["']([^"']*)["']/);
+        let text = faqShortcode.match(/\[faq(?:\s+[^\]]+)?\](.*?)\[\/faq\]/s);
+
+        title = title ? title[1] : '';
+        text = text ? text[1].trim() : '';
+
+        const html = `<span class="shortcode-preview" style="display:inline-block; border-radius: 8px; border: 1px solid #ff4e4e; font-size: 14px; color: #1c1c1c; font-style: italic; padding: 10px; position: relative;">
+        ❓
+        <br />
+        <strong>${title}</strong>
+        <br />
+        ${text}
+        </span>`
+
+        return createPreviewElement('faq', parsedShortcode, html);
     });
 
     return content;
@@ -410,3 +441,4 @@ function parseTiktok(content) {
 
     return content;
 }
+
