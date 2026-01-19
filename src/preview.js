@@ -145,6 +145,7 @@ function parseFromShortcodesToPreview(content) {
     content = parseDistico(content);
     content = parseSpoiler(content);
     content = parseFaq(content);
+    content = parseIndex(content);
 
     // === GAME === //
     content = parseTrivia(content);
@@ -278,6 +279,22 @@ function parseFaq(content) {
         return createPreviewElement('faq', parsedShortcode, html);
     });
 
+    return content;
+}
+
+function parseIndex(content) {
+    const indexRegex = /\[index(?:\s+[^\]]+)?\]/g;
+
+    content = content.replace(indexRegex, function (match) {
+        const indexShortcode = match;
+        const parsedShortcode = indexShortcode.replace(/"/g, '&quot;');
+
+        const html = `<span class="shortcode-preview" style="display:inline-block; border-radius: 10px; border: 2px dashed #ffa500; font-size: 14px; width: 80%;">
+        <span style="display: block; text-align: center; font-weight: 500; color: #969696; padding: 50px 10px;">
+        📑 <br /> Index</span></span>`
+
+        return createPreviewElement('index', parsedShortcode, html);
+    });
     return content;
 }
 
