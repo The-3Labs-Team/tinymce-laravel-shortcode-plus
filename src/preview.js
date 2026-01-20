@@ -168,7 +168,7 @@ async function parseAdvPreview(content) {
     data = data.replace(/<\/div>$/g, '');
 
     //replace <small>[ADV PREVIEW]</small> with <small class="adv-preview">Pubblicità</small>
-    data = data.replace(/<small>\[ADV PREVIEW\]<\/small>/g, '<span class="adv-preview" style="display:inline-block;position: relative;background: #f0f0f0;font-size: 10px;width: 80%;text-align: center;margin: 0px 0;">Pubblicità</span>');
+    data = data.replace(/<small>\[ADV PREVIEW\]<\/small>/g, '<span class="adv-preview" contenteditable="false" style="display:inline-block;position: absolute;background: #f0f0f0;font-size: 10px;width: 80%;text-align: center;margin: -15px 0;">Pubblicità</span>');
 
     return data;
 }
