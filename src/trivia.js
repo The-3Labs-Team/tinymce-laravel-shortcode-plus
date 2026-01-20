@@ -46,31 +46,43 @@ tinymce.PluginManager.add('trivia', function (editor, url) {
   </style>
 `
 
+  const openDialog = function (selectedShortcode) {
+    const selectedId = selectedShortcode ? selectedShortcode.match(/id=["']([^"']*)["']/)[1] : null;
+
+    tinymce.activeEditor.windowManager.open({
+      title: 'Trivia',
+      selectedId: selectedId,
+      body: {
+        type: 'panel',
+        items: [
+          {
+            type: 'htmlpanel',
+            html: customStyles + content
+          }
+        ]
+      }
+    })
+    // Get last trivia
+    lastTrivia(selectedId)
+
+    // Search Image
+    searchTrivia(selectedId)
+
+    // Insert into editor
+    insetDataTrivia(editor)
+  }
+
   editor.ui.registry.addButton('trivia', {
     icon: 'trivia',
     tooltip: 'Add trivia',
     onAction: function () {
-      tinymce.activeEditor.windowManager.open({
-        title: 'Trivia',
-        body: {
-          type: 'panel',
-          items: [
-            {
-              type: 'htmlpanel',
-              html: customStyles + content
-            }
-          ]
-        }
-      })
-      // Get last trivia
-      lastTrivia()
-
-      // Search Image
-      searchTrivia()
-
-      // Insert into editor
-      insetDataTrivia(editor)
+      openDialog()
     }
+  })
+
+  /* Registra un comando per aprire il dialog */
+  editor.addCommand('mceEditShortcode_trivia', function (args) {
+    openDialog(args.selectedShortcode)
   })
 
   /* Add a icon */
@@ -87,9 +99,9 @@ tinymce.PluginManager.add('trivia', function (editor, url) {
 
 // === FUNCTIONS === //
 
-async function lastTrivia() {
+async function lastTrivia(selectedId = null) {
   const lastTrivia = await getTrivia()
-  printTrivia(lastTrivia)
+  printTrivia(lastTrivia, selectedId)
 }
 
 async function getTrivia(query = '') {
@@ -118,31 +130,31 @@ async function getTrivia(query = '') {
   }
 }
 
-function printTrivia(trivias) {
+function printTrivia(trivias, selectedId = null) {
   const lastTriviaContainer = document.querySelector('#last-trivia-container')
 
   // Reset container
   lastTriviaContainer.innerHTML = ''
 
-  if(trivias.length > 0) {
+  if (trivias.length > 0) {
     trivias.forEach((trivia, index) => {
       lastTriviaContainer.innerHTML += `
         <tr style="border-bottom: 1px solid #ababab; cursor: pointer; position: relative" >
             <input type="checkbox" name="trivia" id="trivia-${trivia.id}" value="${trivia.id}" class="checkboxes" style="display: none;"
             onclick="document.querySelector('.tox-dialog__content-js form#trivia-data').dispatchEvent(new Event('submit'))">
-            <td style="padding: 10px;">
-                <label for="trivia-${trivia.id}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%"></label>
-                ${trivia.topic}
+            <td style="padding: 10px;  ${selectedId == trivia.id ? 'border: 1px solid #0ea5e9; background-color: #d9f1fc;' : ''}">
+                <label for="trivia-${trivia.id}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></label>
+                ${trivia.topic} ${selectedId}
             </td>
         <tr>
   `
-  })
+    })
   } else {
     lastTriviaContainer.innerHTML = 'No trivia found'
   }
 }
 
-function searchTrivia(query) {
+function searchTrivia(selectedId = null) {
   const formQuery = document.querySelector('.tox-dialog__content-js form#queryTrivia')
   const container = document.querySelector('#last-trivia-container')
 
@@ -157,7 +169,7 @@ function searchTrivia(query) {
     // Search in Nova
     const trivia = query.length > 0 ? await getTrivia(query) : []
 
-    printTrivia(trivia)
+    printTrivia(trivia, selectedId)
   })
 
 }
@@ -173,6 +185,7 @@ function insetDataTrivia(editor) {
 
     const result = `[trivia id="${id}"]`
     editor.insertContent(result)
+    editor.execCommand('showPreview');
     tinymce.activeEditor.windowManager.close()
   })
 }

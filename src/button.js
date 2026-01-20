@@ -1,7 +1,28 @@
 /* global tinymce */
 
 tinymce.PluginManager.add('button', function (editor, url) {
-  const openDialog = function () {
+  const openDialog = function (selectedShortcode) {
+
+    const buttonRegex = /^\[button(?:\s+[^\]]+)?\]$/
+    let initialData = {
+      link: '',
+      label: '',
+      level: 'primary',
+      forceLinkFb: ''
+    }
+
+    if (selectedShortcode && buttonRegex.test(selectedShortcode)) {
+      const linkMatch = selectedShortcode.match(/link=["']([^"']*)["']/)
+      const labelMatch = selectedShortcode.match(/label=["']([^"']*)["']/)
+      const levelMatch = selectedShortcode.match(/level=["']([^"']*)["']/)
+      const forceLinkFbMatch = selectedShortcode.match(/forceLinkFb=["']([^"']*)["']/)
+
+      if (linkMatch) initialData.link = linkMatch[1]
+      if (labelMatch) initialData.label = labelMatch[1]
+      if (levelMatch) initialData.level = levelMatch[1]
+      if (forceLinkFbMatch) initialData.forceLinkFb = forceLinkFbMatch[1]
+    }
+
     return editor.windowManager.open({
       title: 'Button',
       body: {
@@ -33,6 +54,7 @@ tinymce.PluginManager.add('button', function (editor, url) {
           }
         ]
       },
+      initialData: initialData,
       buttons: [
         {
           type: 'cancel',
@@ -52,12 +74,19 @@ tinymce.PluginManager.add('button', function (editor, url) {
           shortcode += ' forceLinkFb="' + data.forceLinkFb + '"'
         }
         shortcode += ']'
-        /* Insert content when the window form is submitted */
+
         editor.insertContent(shortcode)
+        editor.execCommand('showPreview');
         api.close()
-      }
+      },
     })
+
   }
+
+  /* Registra un comando per aprire il dialog */
+  editor.addCommand('mceEditShortcode_button', function (args) {
+    openDialog(args.selectedShortcode)
+  })
 
   /* Add a button icon */
   editor.ui.registry.addIcon('button', '<svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M64 0C28.7 0 0 28.7 0 64V448c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V64c0-35.3-28.7-64-64-64H64zM224 400a32 32 0 1 1 0 64 32 32 0 1 1 0-64z"/></svg>')

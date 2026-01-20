@@ -47,31 +47,42 @@ tinymce.PluginManager.add('survey', function (editor, url) {
   </style>
 `
 
+  const openDialog = function (selectedShortcode) {
+    const selectedId = selectedShortcode ? selectedShortcode.match(/id=["']([^"']*)["']/)[1] : null;
+
+    tinymce.activeEditor.windowManager.open({
+      title: 'Survey',
+      selectedId: selectedId,
+      body: {
+        type: 'panel',
+        items: [
+          {
+            type: 'htmlpanel',
+            html: customStyles + content
+          }
+        ]
+      }
+    })
+    // Get last survey
+    lastSurvey(selectedId)
+
+    // Search Image
+    searchSurvey(selectedId)
+
+    // Insert into editor
+    insetData(editor)
+  }
+
   editor.ui.registry.addButton('survey', {
     icon: 'survey',
     tooltip: 'Add survey',
     onAction: function () {
-      tinymce.activeEditor.windowManager.open({
-        title: 'Survey',
-        body: {
-          type: 'panel',
-          items: [
-            {
-              type: 'htmlpanel',
-              html: customStyles + content
-            }
-          ]
-        }
-      })
-      // Get last survey
-      lastSurvey()
-
-      // Search Image
-      searchSurvey()
-
-      // Insert into editor
-      insetData(editor)
+      openDialog()
     }
+  })
+
+  editor.addCommand('mceEditShortcode_survey', function (args) {
+    openDialog(args.selectedShortcode)
   })
 
   /* Add a icon */
@@ -88,9 +99,9 @@ tinymce.PluginManager.add('survey', function (editor, url) {
 
 // === FUNCTIONS === //
 
-async function lastSurvey() {
+async function lastSurvey(selectedId = null) {
   const lastSurveys = await getSurveys()
-  printSurvey(lastSurveys)
+  printSurvey(lastSurveys, selectedId)
 }
 
 async function getSurveys(query = '') {
@@ -118,16 +129,16 @@ async function getSurveys(query = '') {
   }
 }
 
-function printSurvey(surveys) {
+function printSurvey(surveys, selectedId = null) {
   const lastSurveyContainer = document.querySelector('#last-survey-container')
 
   // Reset container
   lastSurveyContainer.innerHTML = ''
 
-  if(surveys.length > 0) {
-  surveys.forEach((survey, index) => {
-    lastSurveyContainer.innerHTML += `
-        <tr style="border-bottom: 1px solid #ababab; cursor: pointer; position: relative" >
+  if (surveys.length > 0) {
+    surveys.forEach((survey, index) => {
+      lastSurveyContainer.innerHTML += `
+        <tr style="border-bottom: 1px solid #ababab; cursor: pointer; position: relative; ${selectedId == survey.id ? 'border: 1px solid #0ea5e9; background-color: #d9f1fc;' : ''}">
             <input type="checkbox" name="survey" id="survey-${survey.id}" value="${survey.id}" class="checkboxes" style="display: none;"
             onclick="document.querySelector('.tox-dialog__content-js form#survey-data').dispatchEvent(new Event('submit'))">
             <td style="padding: 10px;">
@@ -139,13 +150,13 @@ function printSurvey(surveys) {
             </td>
         <tr>
   `
-  })
+    })
   } else {
-        lastSurveyContainer.innerHTML = 'No survey found'
+    lastSurveyContainer.innerHTML = 'No survey found'
   }
 }
 
-function searchSurvey(query) {
+function searchSurvey(selectedId = null) {
   const formQuery = document.querySelector('.tox-dialog__content-js form#querySurvey')
   const container = document.querySelector('#last-survey-container')
 
@@ -160,7 +171,7 @@ function searchSurvey(query) {
     // Search in Nova
     const surveys = query.length > 0 ? await getSurveys(query) : []
 
-    printSurvey(surveys)
+    printSurvey(surveys, selectedId)
   })
 
 }
@@ -176,6 +187,7 @@ function insetData(editor) {
 
     const result = `[survey id="${id}"]`
     editor.insertContent(result)
+    editor.execCommand('showPreview');
     tinymce.activeEditor.windowManager.close()
   })
 }
