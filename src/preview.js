@@ -2,17 +2,10 @@
 
 tinymce.PluginManager.add('preview', function (editor, url) {
     let isActive = false;
+    let previewDebounceTimer;
 
     editor.on('click', function (e) {
-        let target = null;
-
-        if (e.target.classList.contains('shortcode-preview')) {
-            target = e.target;
-        } else if (e.target.parentNode.classList.contains('shortcode-preview') || false) {
-            target = e.target.parentNode;
-        } else if (e.target.parentNode.parentNode.classList.contains('shortcode-preview') || false) {
-            target = e.target.parentNode.parentNode;
-        }
+        const target = e.target.closest('.shortcode-preview');
 
         // Controlla se è uno span con data-preview-shortcode
         if (target) {
@@ -35,6 +28,21 @@ tinymce.PluginManager.add('preview', function (editor, url) {
         }
     });
 
+    //intercetta il drag and drop
+    editor.on('drop', async function (e) {
+        if (isActive) {
+            clearTimeout(previewDebounceTimer);
+            previewDebounceTimer = setTimeout(() => showPreview(editor), 500);
+        }
+    });
+
+    editor.on('keydown', function (e) {
+        if (isActive && (e.key === 'Enter')) {
+            clearTimeout(previewDebounceTimer);
+            previewDebounceTimer = setTimeout(() => showPreview(editor), 500);
+        }
+    });
+
     /**
      * GetContent: Trasforma i placeholder in shortcode all'output
      * Questo viene eseguito quando il contenuto viene estratto dall'editor
@@ -42,6 +50,7 @@ tinymce.PluginManager.add('preview', function (editor, url) {
     editor.on('GetContent', function (e) {
         if (e.content) {
             e.content = parseFromPreviewToShortcodes(e.content);
+            e.content = removeAdvPreview(e.content);
         }
     });
 
@@ -51,6 +60,7 @@ tinymce.PluginManager.add('preview', function (editor, url) {
     editor.on('PostProcess', function (e) {
         if (e.get && e.content) {
             e.content = parseFromPreviewToShortcodes(e.content);
+            e.content = removeAdvPreview(e.content);
         }
     });
 
@@ -105,6 +115,7 @@ async function showPreview(editor) {
 
     let content = editor.getContent();
 
+    content = await parseAdvPreview(content);
     content = await parseFromShortcodesToPreview(content);
 
     editor.setContent(content, { format: 'raw' });
@@ -126,6 +137,7 @@ function hidePreview(editor) {
 
     let content = editor.getContent();
 
+    content = removeAdvPreview(content);
     content = parseFromPreviewToShortcodes(content);
 
     editor.setContent(content, { format: 'raw' });
@@ -137,6 +149,39 @@ function hidePreview(editor) {
         editor.selection.collapse(true);
         editor.dom.remove(markerElement);
     }
+}
+
+async function parseAdvPreview(content) {
+
+    //call ads-post-parser/get-preview-html and pass rawContent as raw_html
+    const response = await fetch('/ads-post-parser/get-preview-html', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ raw_html: content })
+    }).then(response => response.json());
+    let data = response;
+
+    //remove <div id="adv__parsed__content">
+    data = data.replace(/<div id="adv__parsed__content">/g, '');
+    data = data.replace(/<\/div>$/g, '');
+
+    //replace <small>[ADV PREVIEW]</small> with <small class="adv-preview">Pubblicità</small>
+    data = data.replace(/<small>\[ADV PREVIEW\]<\/small>/g, '<span class="adv-preview" style="display:inline-block;position: relative;background: #f0f0f0;font-size: 10px;width: 80%;text-align: center;margin: 0px 0;">Pubblicità</span>');
+
+    return data;
+}
+
+function removeAdvPreview(content) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(content, 'text/html');
+    const advTags = doc.body.querySelectorAll('.adv-preview');
+    advTags.forEach(
+        tag => tag.parentNode.remove()
+    );
+
+    return doc.body.innerHTML;
 }
 
 /* Convert from shortcodes to preview spans */
