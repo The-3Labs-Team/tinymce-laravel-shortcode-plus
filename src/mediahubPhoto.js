@@ -1,5 +1,8 @@
 /* global tinymce */
 
+// Variabile globale per tracciare gli ID delle foto selezionate
+let photo_ids = []
+
 tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
   const content = `
     <section style="display: flex; align-items: center; padding: 15px; background-color: #fdfeff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 15px;">
@@ -188,28 +191,78 @@ tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
     </style>
   `
 
+  const openDialog = function (selectedShortcode) {
+    // Reset photo_ids all'apertura del dialog
+    photo_ids = []
+
+    const photoRegex = /^\[photo(?:\s+[^\]]+)?\]$/
+    let initialData = {
+      ids: null,
+      caption: null,
+      link: null,
+      forceLinkFb: null,
+      align: null,
+      maxWidth: null,
+      effect: null,
+      shape: null,
+      zoom: null
+    }
+
+    if (selectedShortcode && photoRegex.test(selectedShortcode)) {
+      const idMatch = selectedShortcode.match(/id=["']([^"']*)["']/)
+      const captionMatch = selectedShortcode.match(/didascalia=["']([^"']*)["']/)
+      const linkMatch = selectedShortcode.match(/link=["']([^"']*)["']/)
+      const forceLinkFbMatch = selectedShortcode.match(/forceLinkFb=["']([^"']*)["']/)
+      const alignMatch = selectedShortcode.match(/align=["']([^"']*)["']/)
+      const maxWidthMatch = selectedShortcode.match(/max-width=["']([^"']*)["']/)
+      const effectMatch = selectedShortcode.match(/effect=["']([^"']*)["']/)
+      const shapeMatch = selectedShortcode.match(/shape=["']([^"']*)["']/)
+      const zoomMatch = selectedShortcode.match(/zoom=["']([^"']*)["']/)
+
+      initialData.ids = idMatch ? idMatch[1] : null
+      initialData.caption = captionMatch ? captionMatch[1] : null
+      initialData.link = linkMatch ? linkMatch[1] : null
+      initialData.forceLinkFb = forceLinkFbMatch ? forceLinkFbMatch[1] : null
+      initialData.align = alignMatch ? alignMatch[1] : null
+      initialData.maxWidth = maxWidthMatch ? maxWidthMatch[1] : null
+      initialData.effect = effectMatch ? effectMatch[1] : null
+      initialData.shape = shapeMatch ? shapeMatch[1] : null
+      initialData.zoom = zoomMatch ? zoomMatch[1] : null
+    }
+
+    tinymce.activeEditor.windowManager.open({
+      title: 'MediaHub Photo',
+      initialData: initialData,
+      body: {
+        type: 'panel',
+        items: [
+          {
+            type: 'htmlpanel',
+            html: customStyles + content
+          }
+        ]
+      }
+    })
+    lastImage()
+    // Search Image
+    searchImages()
+    // Insert into editor
+    insertShortcode(editor)
+    // Fill initial data
+    fillPhotoInitialData(initialData)
+  }
+
+
   editor.ui.registry.addButton('mediahubPhoto', {
     icon: 'mediahubPhoto',
     tooltip: 'Add Photo from MediaHub',
     onAction: function () {
-      tinymce.activeEditor.windowManager.open({
-        title: 'MediaHub Photo',
-        body: {
-          type: 'panel',
-          items: [
-            {
-              type: 'htmlpanel',
-              html: customStyles + content
-            }
-          ]
-        }
-      })
-      lastImage()
-      // Search Image
-      searchImages()
-      // Insert into editor
-      insertShortcode(editor)
+      openDialog()
     }
+  })
+
+  editor.addCommand('mceEditShortcode_photo', function (args) {
+    openDialog(args.selectedShortcode)
   })
 
   /* Add a icon */
@@ -309,28 +362,29 @@ function printCards(cards, container, range = 3) {
   // Print cards on DOM
   if (cards.length > 0) {
     cards.forEach((card, index) => {
+      const isSelected = photo_ids.includes(card.id)
+      const activeClass = isSelected ? 'active' : ''
+      const borderColor = isSelected ? '#4f46e5' : '#e5e7eb'
+      const boxShadow = isSelected ? '0 4px 10px rgba(79, 70, 229, 0.3)' : '0 2px 5px rgba(0,0,0,0.1)'
+
       const cardHtml = `
-        <label class="checkboxes" data-id="${card.id}"
-         style="position: relative; display: flex; flex-direction: column; cursor: pointer; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: all 0.2s ease; height: 100%; border: 2px solid #e5e7eb; transform: translateY(0); margin: 2px;">
+        <div class="photo-card ${activeClass}" data-id="${card.id}" onclick="togglePhotoSelection(${card.id})"
+         style="position: relative; display: flex; flex-direction: column; cursor: pointer; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: ${boxShadow}; transition: all 0.2s ease; height: 100%; border: 2px solid ${borderColor}; transform: translateY(0); margin: 2px;">
             <div style="height: 200px; position: relative; overflow: hidden;">
                 <img src="${card.thumbnail_url ?? card.url}" style="width: 100%; height: 100%; object-fit: cover;">
                 <div style="position: absolute; inset: 0; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);"></div>
                 <span style="position: absolute; top: 8px; right: 8px; background-color: #4b5563; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">#${card.id}</span>
-                <input type="checkbox" name="id-${index}" style="position: absolute; top: 0; left: 0; display: none" value="${card.id}">
             </div>
             <div style="padding: 10px; background-color: #f9fafb; text-align: center; border-top: 1px solid #f3f4f6;">
                 <p style="margin: 0; font-size: 13px; color: #4b5563; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500;">${card.file_name}</p>
             </div>
-        </label>
+        </div>
         `
       container.innerHTML += cardHtml
     })
   } else {
     container.innerHTML = '<p style="padding: 30px; color: #6b7280; font-size: 16px; grid-column: 1 / -1; text-align: center; background-color: #ffffff; border-radius: 8px; border: 2px solid #e5e7eb;">No results found. Try a different search term.</p>'
   }
-
-  // Active selected cards
-  activeCards()
 }
 
 // Insert shortcode into editor
@@ -341,7 +395,7 @@ function insertShortcode(editor) {
     e.preventDefault()
     const formData = new FormData(form)
 
-    const ids = getIds(formData)
+    const ids = getIds()
 
     const caption = formData.get('caption') ? `didascalia="${formData.get('caption')}"` : ''
     const link = formData.get('link') ? `link="${formData.get('link')}"` : ''
@@ -355,6 +409,7 @@ function insertShortcode(editor) {
     let result = `[photo id="${ids}" ${caption} ${link} ${forceLinkFb} ${align} ${maxWidth} ${effect} ${shape} ${zoom}]`
     result = result.replace(/ +]$/, ']')
     editor.insertContent(result)
+    editor.execCommand('showPreview');
     tinymce.activeEditor.windowManager.close()
   })
 }
@@ -386,53 +441,24 @@ function searchInNova(keyword) {
 }
 
 // Get the ids of the selected images
-function getIds(formData) {
-  let result = ''
-
-  formData.forEach((value, name) => {
-    if (name.startsWith('id-')) {
-      result += value + ','
-    }
-  })
-
-  if (result.endsWith(',')) {
-    result = result.slice(0, -1)
-  }
-
-  return result
+function getIds() {
+  return photo_ids.join(',')
 }
 
-// Active cards on click
-function activeCards() {
-  const checkboxes = document.querySelectorAll('.checkboxes')
-  checkboxes.forEach(checkbox => {
-    checkbox.addEventListener('click', function (e) {
-      const chechbox = this.querySelector('input[type="checkbox"]').checked
+// Toggle photo selection
+function togglePhotoSelection(id) {
+  const index = photo_ids.indexOf(id)
+  const card = document.querySelector(`.photo-card[data-id="${id}"]`)
 
-      if (chechbox) {
-        selectCard(this)
-      } else {
-        deselectCard(this)
-      }
-    })
-
-    // Add hover effect
-    checkbox.addEventListener('mouseenter', function () {
-      if (!this.querySelector('input[type="checkbox"]').checked) {
-        this.style.borderColor = '#d1d5db';
-        this.style.transform = 'translateY(-2px)';
-        this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
-      }
-    });
-
-    checkbox.addEventListener('mouseleave', function () {
-      if (!this.querySelector('input[type="checkbox"]').checked) {
-        this.style.borderColor = '#e5e7eb';
-        this.style.transform = 'translateY(0)';
-        this.style.boxShadow = '0 2px 5px rgba(0,0,0,0.1)';
-      }
-    });
-  })
+  if (index > -1) {
+    // Rimuovi ID dall'array
+    photo_ids.splice(index, 1)
+    deselectCard(card)
+  } else {
+    // Aggiungi ID all'array
+    photo_ids.push(id)
+    selectCard(card)
+  }
 }
 
 function sliderDimensions(value) {
@@ -445,7 +471,7 @@ function sliderDimensions(value) {
   cardContainer.style.gridTemplateColumns = `repeat(${value}, 1fr)`
 
   // Set Image Height
-  const imageContainers = document.querySelectorAll('.checkboxes div')
+  const imageContainers = document.querySelectorAll('.photo-card > div:first-child')
 
   imageContainers.forEach(imageContainer => {
     if (value === 2) {
@@ -732,11 +758,10 @@ async function handleUploadButtonClick() {
     // Seleziona automaticamente le immagini caricate
     const container = document.querySelector('#card-container')
     mediaList.forEach(media => {
-      const card = container.querySelector(`.checkboxes[data-id="${media.id}"]`)
-      if (card) {
-        const checkbox = card.querySelector('input[type="checkbox"]')
-        if (checkbox && !checkbox.checked) {
-          checkbox.checked = true
+      if (!photo_ids.includes(media.id)) {
+        photo_ids.push(media.id)
+        const card = container.querySelector(`.photo-card[data-id="${media.id}"]`)
+        if (card) {
           selectCard(card)
         }
       }
@@ -917,4 +942,42 @@ async function uploadToMediaHub(files) {
 
   const result = await response.json()
   return result
+}
+
+function fillPhotoInitialData(initialData) {
+  const captionField = document.querySelector('input[name="caption"]')
+  const linkField = document.querySelector('input[name="link"]')
+  const forceLinkFbField = document.querySelector('input[name="forcelinkfb"]')
+  const alignField = document.querySelector('select[name="align"]')
+  const maxWidthField = document.querySelector('input[name="max-width"]')
+  const effectField = document.querySelector('select[name="effect"]')
+  const shapeField = document.querySelector('select[name="shape"]')
+  const zoomCheckbox = document.querySelector('input[name="disable_zoom"]')
+
+  if (captionField) captionField.value = initialData.caption || ''
+  if (linkField) linkField.value = initialData.link || ''
+  if (forceLinkFbField) forceLinkFbField.value = initialData.forceLinkFb || ''
+  if (alignField) alignField.value = initialData.align || ''
+  if (maxWidthField) maxWidthField.value = initialData.maxWidth || ''
+  if (effectField) effectField.value = initialData.effect || ''
+  if (shapeField) shapeField.value = initialData.shape || ''
+  if (zoomCheckbox && initialData.zoom === 'false') zoomCheckbox.checked = true
+
+  // Pre-select the images based on the ids
+  if (initialData.ids) {
+    const ids = initialData.ids.split(',')
+
+    // Popola l'array photo_ids
+    photo_ids = ids.map(id => parseInt(id.trim())).filter(id => !isNaN(id))
+
+    // Usa setTimeout per assicurarti che il DOM sia completamente aggiornato
+    setTimeout(() => {
+      photo_ids.forEach(id => {
+        const card = document.querySelector(`.photo-card[data-id="${id}"]`)
+        if (card) {
+          selectCard(card)
+        }
+      })
+    }, 100)
+  }
 }

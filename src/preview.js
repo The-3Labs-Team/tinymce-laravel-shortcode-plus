@@ -10,6 +10,8 @@ tinymce.PluginManager.add('preview', function (editor, url) {
             target = e.target;
         } else if (e.target.parentNode.classList.contains('shortcode-preview') || false) {
             target = e.target.parentNode;
+        } else if (e.target.parentNode.parentNode.classList.contains('shortcode-preview') || false) {
+            target = e.target.parentNode.parentNode;
         }
 
         // Controlla se è uno span con data-preview-shortcode
@@ -96,14 +98,14 @@ tinymce.PluginManager.add('preview', function (editor, url) {
 });
 
 /* Function for showing preview by replacing shortcodes */
-function showPreview(editor) {
+async function showPreview(editor) {
     // Inserisci un marker temporaneo unico nel punto del cursore
     const marker = `<span id="cursor-marker-${Date.now()}" style="display:none;"></span>`;
     editor.selection.setContent(marker);
 
     let content = editor.getContent();
 
-    content = parseFromShortcodesToPreview(content);
+    content = await parseFromShortcodesToPreview(content);
 
     editor.setContent(content, { format: 'raw' });
 
@@ -138,14 +140,14 @@ function hidePreview(editor) {
 }
 
 /* Convert from shortcodes to preview spans */
-function parseFromShortcodesToPreview(content) {
+async function parseFromShortcodesToPreview(content) {
     content = parseButton(content);
     content = parseWidgetbay(content);
     content = parseDistico(content);
     content = parseSpoiler(content);
     content = parseFaq(content);
     content = parseIndex(content);
-    content = parsePhoto(content);
+    content = await parsePhoto(content);
 
     // === GAME === //
     content = parseTrivia(content);
@@ -251,11 +253,12 @@ function parseWidgetbay(content) {
     return content;
 }
 
-function parsePhoto(content) {
+async function parsePhoto(content) {
     const photoRegex = /\[photo(?:\s+[^\]]+)?\]/g;
+    const matches = [...content.matchAll(photoRegex)];
 
-    content = content.replace(photoRegex, function (match) {
-        const photoShortcode = match;
+    for (const match of matches) {
+        const photoShortcode = match[0];
         const parsedShortcode = photoShortcode.replace(/"/g, '&quot;');
 
         let id = photoShortcode.match(/id=["']([^"']*)["']/);
@@ -280,36 +283,59 @@ function parsePhoto(content) {
         maxWidth = maxWidth ? maxWidth[1] : null;
 
         let zoom = photoShortcode.match(/zoom=["']([^"']*)["']/);
-        zoom = zoom ? zoom[1] : true;
+        zoom = zoom !== null ? zoom[1] : true;
+
+        const ids = id.split(',').map(i => i.trim());
+
+        // Carica tutti gli URL delle immagini in parallelo
+        const imageUrls = await Promise.all(ids.map(i => getMediaHubImagesbyId(i)));
+
+        const totalFloatOptions = [align, effect, maxWidth, zoom].filter(Boolean).length;
 
         const html = `<small class="shortcode-preview" style="display: flex; flex-direction: column; position: relative; border-radius: ${shape === 'rounded' ? '30px' : '10px'}; border: 1px solid #979797; width: 80%; text-align: center; overflow: hidden; width: 80%">
 
-            <small style="display: flex; justify-content: flex-end;">
-                <small style="display: grid; text-align: left; padding: 6px 10px; font-size: 0.7rem; background: #d6d6d6; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 5px;">
+            <small style="position: absolute; top: 0; right :0; display: grid; text-align: left; padding: 6px 10px; font-size: 0.7rem; background: #eeeeee;
+                border-bottom-left-radius: 8px; grid-template-columns: repeat(${totalFloatOptions > 1 ? 2 : 1}, minmax(0, 1fr)); gap: 2px 5px;">
                     ${align ? `<small><strong>Alignment:</strong> ${align}</small>` : ''}
                     ${effect ? `<small><strong>Effect:</strong> ${effect}</small>` : ''}
-                    ${maxWidth ? `<small><strong>Max Width:</strong> ${maxWidth}</small>` : ''}
-                    ${zoom ? `<small><strong>Zoom:</strong> ${zoom ? 'YES' : 'NO'}</small>` : ''}
-                </small>
+                    ${maxWidth ? `<small><strong>Max Width:</strong> ${maxWidth}px</small>` : ''}
+                    ${zoom ? `<small><strong>Zoom:</strong> ${zoom === true ? 'YES' : 'NO'}</small>` : ''}
             </small>
 
-
-            <small style="display: block; font-size: 1rem; padding: 20px 0;">
-                ${id}
+            <small style="display: grid; grid-template-columns: repeat(${imageUrls.length > 3 ? 4 : imageUrls.length}, minmax(0, 1fr));">
+                ${imageUrls.map((url, index) => `<img src="${url}" alt="MediaHub Image ${ids[index]}" style="width: 100%; aspect-ratio: ${imageUrls.length > 1 ? '1 / 1' : 'auto'}; object-fit: cover;" />`).join('')}
             </small>
 
-            <small>
+            <small style="${caption || link ? 'padding: 5px 0; background: #eeeeee;' : ''}">
                 ${caption ? caption + '<br />' : ''}
                 ${link ? link : ''}
             </small>
         </small> `
 
-        return createPreviewElement('photo', parsedShortcode, html);
-    });
+        content = content.replace(photoShortcode, createPreviewElement('photo', parsedShortcode, html));
+    }
 
     return content;
 }
 
+async function getMediaHubImagesbyId(id) {
+
+    try {
+        const endpoint = "/nova-vendor/media-hub/media/" + id + "/data";
+
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+        }).then(response => response.json());
+
+        return response.url;
+    } catch (error) {
+        console.error('Error fetching MediaHub image data:', error);
+    }
+}
 
 function parseDistico(content) {
     //Trova tutti gli shortcode button presente nel contenuto [distico]--- ANY TEXT ---[/distico]
