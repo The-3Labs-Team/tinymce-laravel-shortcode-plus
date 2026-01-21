@@ -28,19 +28,24 @@ tinymce.PluginManager.add('preview', function (editor, url) {
         }
     });
 
-    //intercetta il drag and drop
-    editor.on('drop', async function (e) {
+
+    editor.on('dragstart', function (e) {
+        const isAdvPreview = e.target.closest('.adv-preview');
+
         if (isActive) {
-            clearTimeout(previewDebounceTimer);
-            previewDebounceTimer = setTimeout(() => showPreview(editor), 500);
+            if (isAdvPreview) {
+                e.preventDefault();
+            }
         }
     });
 
     editor.on('keydown', function (e) {
-        if (isActive && (e.key === 'Enter')) {
-            clearTimeout(previewDebounceTimer);
-            previewDebounceTimer = setTimeout(() => showPreview(editor), 500);
-        }
+        clearTimeout(previewDebounceTimer);
+        previewDebounceTimer = setTimeout(() => showPreview(editor), 1000);
+    });
+
+    editor.on('drop', async function (e) {
+        setTimeout(() => showPreview(editor), 50);
     });
 
     /**
@@ -109,6 +114,11 @@ tinymce.PluginManager.add('preview', function (editor, url) {
 
 /* Function for showing preview by replacing shortcodes */
 async function showPreview(editor) {
+    console.log('PREVIEW test 13');
+
+    // Blocca l'editor durante l'aggiornamento
+    editor.mode.set('readonly');
+
     // Inserisci un marker temporaneo unico nel punto del cursore
     const marker = `<span id="cursor-marker-${Date.now()}" style="display:none;"></span>`;
     editor.selection.setContent(marker);
@@ -127,6 +137,9 @@ async function showPreview(editor) {
         editor.selection.collapse(true);
         editor.dom.remove(markerElement);
     }
+
+    // Riabilita l'editor
+    editor.mode.set('design');
 }
 
 /* Function for hiding preview and restoring shortcodes */
@@ -168,7 +181,7 @@ async function parseAdvPreview(content) {
     data = data.replace(/<\/div>$/g, '');
 
     //replace <small>[ADV PREVIEW]</small> with <small class="adv-preview">Pubblicità</small>
-    data = data.replace(/<small>\[ADV PREVIEW\]<\/small>/g, '<span class="adv-preview" contenteditable="false" style="display:inline-block;position: absolute;background: #f0f0f0;font-size: 10px;width: 80%;text-align: center;margin: -15px 0;">Pubblicità</span>');
+    data = data.replace(/<small>\[ADV PREVIEW\]<\/small>/g, '<span class="adv-preview" contenteditable="false" draggable="false" style="display:inline-block;position: absolute;background: #f0f0f0;font-size: 10px;width: 80%;text-align: center;margin: -15px 0;">Pubblicità</span>');
 
     return data;
 }
@@ -337,7 +350,7 @@ async function parsePhoto(content) {
 
         const totalFloatOptions = [align, effect, maxWidth, zoom].filter(Boolean).length;
 
-        const html = `<small class="shortcode-preview" style="display: flex; flex-direction: column; position: relative; border-radius: ${shape === 'rounded' ? '30px' : '10px'}; border: 1px solid #979797; width: 80%; text-align: center; overflow: hidden; width: 80%">
+        const html = `<small class="shortcode-preview" style="display: flex; flex-direction: column; position: relative; border-radius: ${shape === 'rounded' ? '30px' : '0px'}; border: 1px solid #979797; width: 80%; text-align: center; overflow: hidden; width: 80%">
 
             <small style="position: absolute; top: 0; right :0; display: grid; text-align: left; padding: 6px 10px; font-size: 0.7rem; background: #eeeeee;
                 border-bottom-left-radius: 8px; grid-template-columns: repeat(${totalFloatOptions > 1 ? 2 : 1}, minmax(0, 1fr)); gap: 2px 5px;">
