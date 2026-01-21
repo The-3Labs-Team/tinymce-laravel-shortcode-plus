@@ -45,7 +45,7 @@ tinymce.PluginManager.add('preview', function (editor, url) {
     });
 
     editor.on('drop', async function (e) {
-        setTimeout(() => showPreview(editor), 50);
+        setTimeout(() => showPreview(editor, true), 50);
     });
 
     /**
@@ -113,8 +113,8 @@ tinymce.PluginManager.add('preview', function (editor, url) {
 });
 
 /* Function for showing preview by replacing shortcodes */
-async function showPreview(editor) {
-    console.log('PREVIEW test 13');
+async function showPreview(editor, fromDrop = false) {
+    console.log('PREVIEW test 15');
 
     // Blocca l'editor durante l'aggiornamento
     editor.mode.set('readonly');
@@ -124,6 +124,11 @@ async function showPreview(editor) {
     editor.selection.setContent(marker);
 
     let content = editor.getContent();
+
+    // Assicura che gli shortcode siano sempre in propri paragrafi SOLO dopo un drop
+    if (fromDrop) {
+        content = ensureShortcodesInParagraphs(content);
+    }
 
     content = await parseAdvPreview(content);
     content = await parseFromShortcodesToPreview(content);
@@ -162,6 +167,73 @@ function hidePreview(editor) {
         editor.selection.collapse(true);
         editor.dom.remove(markerElement);
     }
+}
+
+/* Helper function to ensure shortcodes are in their own paragraphs */
+function ensureShortcodesInParagraphs(content) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(content, 'text/html');
+
+    // Pattern per identificare gli shortcode (sia nella forma originale che come span preview)
+    const shortcodePattern = /(\[[\w-]+(?:\s+[^\]]+)?\](?:.*?\[\/[\w-]+\])?|<span[^>]*data-preview-shortcode[^>]*>.*?<\/span>)/gs;
+
+    // Trova tutti i paragrafi
+    const paragraphs = Array.from(doc.body.querySelectorAll('p'));
+    const paragraphsToRemove = new Set();
+
+    paragraphs.forEach(p => {
+        const html = p.innerHTML;
+        const matches = [...html.matchAll(shortcodePattern)];
+
+        if (matches.length > 0) {
+            // Verifica se il paragrafo contiene testo oltre allo shortcode
+            let tempHtml = html;
+            matches.forEach(match => {
+                tempHtml = tempHtml.replace(match[0], '');
+            });
+
+            // Rimuovi &nbsp; e trim, ma mantieni gli spazi normali
+            const textContent = tempHtml.replace(/&nbsp;/g, '').replace(/<[^>]*>/g, '').trim();
+
+            // Se c'è del testo oltre allo shortcode, separa lo shortcode
+            if (textContent.length > 0) {
+                let newHtml = html;
+
+                // Estrai ogni shortcode e mettilo in un proprio paragrafo
+                matches.forEach(match => {
+                    const shortcode = match[0];
+                    newHtml = newHtml.replace(shortcode, `</p><p>${shortcode}</p><p>`);
+                });
+
+                // Sostituisci il contenuto del paragrafo
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = newHtml;
+
+                // Inserisci i nuovi elementi prima del paragrafo originale
+                while (tempDiv.firstChild) {
+                    p.parentNode.insertBefore(tempDiv.firstChild, p);
+                }
+
+                // Marca il paragrafo originale per la rimozione
+                paragraphsToRemove.add(p);
+            }
+        }
+    });
+
+    // Rimuovi i paragrafi marcati
+    paragraphsToRemove.forEach(p => p.remove());
+
+    // Pulisci solo i paragrafi completamente vuoti (senza contenuto o solo &nbsp;)
+    const allParagraphs = doc.body.querySelectorAll('p');
+    allParagraphs.forEach(p => {
+        const content = p.innerHTML.trim();
+        // Rimuovi solo se completamente vuoto o solo &nbsp;
+        if (content === '' || content === '&nbsp;' || content === '<br>') {
+            p.remove();
+        }
+    });
+
+    return doc.body.innerHTML;
 }
 
 async function parseAdvPreview(content) {
