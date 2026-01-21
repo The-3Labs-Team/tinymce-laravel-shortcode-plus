@@ -3,6 +3,7 @@
 tinymce.PluginManager.add('preview', function (editor, url) {
     let isActive = false;
     let previewDebounceTimer;
+    let enterPressed = false;
 
     editor.on('click', function (e) {
         const target = e.target.closest('.shortcode-preview');
@@ -41,8 +42,28 @@ tinymce.PluginManager.add('preview', function (editor, url) {
 
     editor.on('keydown', function (e) {
         if (isActive) {
-            clearTimeout(previewDebounceTimer);
-            previewDebounceTimer = setTimeout(() => showPreview(editor), 1000);
+            // Se premo ENTER, attivo il flag e avvio il debounce
+            if (e.key === 'Enter' || e.keyCode === 13) {
+                enterPressed = true;
+                clearTimeout(previewDebounceTimer);
+                previewDebounceTimer = setTimeout(() => {
+                    if (enterPressed) {
+                        showPreview(editor);
+                        enterPressed = false;
+                    }
+                }, 1000);
+            }
+            // Se scrivo altro e ho già premuto ENTER, resetto il debounce
+            else if (enterPressed) {
+                clearTimeout(previewDebounceTimer);
+                previewDebounceTimer = setTimeout(() => {
+                    if (enterPressed) {
+                        showPreview(editor);
+                        enterPressed = false;
+                    }
+                }, 1000);
+            }
+            // Se scrivo senza aver premuto ENTER, non faccio nulla
         }
     });
 
