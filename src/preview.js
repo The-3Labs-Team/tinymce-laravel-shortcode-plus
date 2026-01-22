@@ -42,6 +42,13 @@ tinymce.PluginManager.add('preview', function (editor, url) {
 
     editor.on('keydown', function (e) {
         if (isActive) {
+            clearTimeout(previewDebounceTimer);
+            previewDebounceTimer = setTimeout(() => {
+                showPreview(editor);
+            }, 1000);
+        }
+        /*
+        if (isActive) {
             // Se premo ENTER, attivo il flag e avvio il debounce
             if (e.key === 'Enter' || e.keyCode === 13) {
                 enterPressed = true;
@@ -65,6 +72,7 @@ tinymce.PluginManager.add('preview', function (editor, url) {
             }
             // Se scrivo senza aver premuto ENTER, non faccio nulla
         }
+            */
     });
 
     editor.on('drop', async function (e) {
@@ -141,19 +149,21 @@ tinymce.PluginManager.add('preview', function (editor, url) {
 async function showPreview(editor, fromDrop = false) {
     console.log('PREVIEW update 8');
 
+    const scrollPosition = window.scrollY || document.documentElement.scrollTop;
     editor.mode.set('readonly');
-
-    // Salva bookmark prima di qualsiasi modifica
     const bookmark = editor.selection.getBookmark(2);
 
     let content = editor.getContent();
+
+    //Rimuovi adv preview esistente per evitare duplicati
+    content = removeAdvPreview(content);
 
     // Assicura che gli shortcode siano sempre in propri paragrafi SOLO dopo un drop
     if (fromDrop) {
         content = ensureShortcodesInParagraphs(content);
     }
 
-    //content = await parseAdvPreview(content);
+    content = await parseAdvPreview(content);
     content = await parseFromShortcodesToPreview(content);
 
     editor.setContent(content, { format: 'raw' });
@@ -165,8 +175,8 @@ async function showPreview(editor, fromDrop = false) {
     setTimeout(() => {
         try {
             editor.selection.moveToBookmark(bookmark);
-            // Scrolla il cursore in vista senza animazione
-            editor.selection.scrollIntoView();
+            // Ripristina la posizione di scroll
+            window.scrollTo(0, scrollPosition);
         } catch (e) {
             // Se il bookmark fallisce, metti il cursore alla fine
             editor.selection.select(editor.getBody(), true);
@@ -270,21 +280,16 @@ async function parseAdvPreview(content) {
     data = data.replace(/<div id="adv__parsed__content">/g, '');
     data = data.replace(/<\/div>$/g, '');
 
-    //replace <small>[ADV PREVIEW]</small> with <small class="adv-preview">Pubblicità</small>
-    data = data.replace(/<small>\[ADV PREVIEW\]<\/small>/g, '<span class="adv-preview" contenteditable="false" draggable="false" style="display:inline-block;position: absolute;background: #f0f0f0;font-size: 10px;width: 80%;text-align: center;margin: -15px 0;">Pubblicità</span>');
+    //replace <small>[ADV PREVIEW]</small> with <span class="adv-preview">
+    data = data.replace(/<small>\[ADV PREVIEW\]<\/small>/g, '<span class="adv-preview" contenteditable="false" draggable="false" style="display:inline-block;position: absolute;background: #f0f0f0;font-size: 10px;width: 80%;text-align: center;margin: -15px 0;pointer-events: none;user-select: none;">Pubblicità</span>');
 
     return data;
 }
 
 function removeAdvPreview(content) {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(content, 'text/html');
-    const advTags = doc.body.querySelectorAll('.adv-preview');
-    advTags.forEach(
-        tag => tag.parentNode.remove()
-    );
-
-    return doc.body.innerHTML;
+    // Rimuovi i paragrafi che contengono SOLO span .adv-preview (e spazi/nbsp/br)
+    content = content.replace(/<p[^>]*>(?:&nbsp;|\s|<br\s*\/?>)*<span[^>]*class="adv-preview"[^>]*>.*?<\/span>(?:&nbsp;|\s|<br\s*\/?>)*<\/p>/g, '');
+    return content;
 }
 
 /* Convert from shortcodes to preview spans */
