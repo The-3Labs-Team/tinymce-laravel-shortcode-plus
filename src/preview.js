@@ -139,9 +139,10 @@ tinymce.PluginManager.add('preview', function (editor, url) {
 
 /* Function for showing preview by replacing shortcodes */
 async function showPreview(editor, fromDrop = false) {
-    console.log('PREVIEW update 6');
+    console.log('PREVIEW update 8');
 
     editor.mode.set('readonly');
+
     // Salva bookmark prima di qualsiasi modifica
     const bookmark = editor.selection.getBookmark(2);
 
@@ -152,7 +153,7 @@ async function showPreview(editor, fromDrop = false) {
         content = ensureShortcodesInParagraphs(content);
     }
 
-    content = await parseAdvPreview(content);
+    //content = await parseAdvPreview(content);
     content = await parseFromShortcodesToPreview(content);
 
     editor.setContent(content, { format: 'raw' });
@@ -164,12 +165,15 @@ async function showPreview(editor, fromDrop = false) {
     setTimeout(() => {
         try {
             editor.selection.moveToBookmark(bookmark);
+            // Scrolla il cursore in vista senza animazione
+            editor.selection.scrollIntoView();
         } catch (e) {
             // Se il bookmark fallisce, metti il cursore alla fine
             editor.selection.select(editor.getBody(), true);
             editor.selection.collapse(false);
         }
     }, 0);
+
     editor.mode.set('design');
 }
 
