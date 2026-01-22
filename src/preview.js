@@ -69,7 +69,7 @@ tinymce.PluginManager.add('preview', function (editor, url) {
 
     editor.on('drop', async function (e) {
         if (isActive) {
-            setTimeout(() => showPreview(editor, true), 50);
+            setTimeout(() => showPreview(editor, true), 100);
         }
     });
 
@@ -139,14 +139,11 @@ tinymce.PluginManager.add('preview', function (editor, url) {
 
 /* Function for showing preview by replacing shortcodes */
 async function showPreview(editor, fromDrop = false) {
-    console.log('PREVIEW test 15');
+    console.log('PREVIEW update 6');
 
-    // Blocca l'editor durante l'aggiornamento
     editor.mode.set('readonly');
-
-    // Inserisci un marker temporaneo unico nel punto del cursore
-    const marker = `<span id="cursor-marker-${Date.now()}" style="display:none;"></span>`;
-    editor.selection.setContent(marker);
+    // Salva bookmark prima di qualsiasi modifica
+    const bookmark = editor.selection.getBookmark(2);
 
     let content = editor.getContent();
 
@@ -160,38 +157,30 @@ async function showPreview(editor, fromDrop = false) {
 
     editor.setContent(content, { format: 'raw' });
 
-    // Trova il marker e posiziona il cursore lì
-    const markerElement = editor.dom.select('[id^="cursor-marker-"]')[0];
-    if (markerElement) {
-        editor.selection.select(markerElement);
-        editor.selection.collapse(true);
-        editor.dom.remove(markerElement);
-    }
+    // Ripristina focus e cursore
+    editor.focus();
 
-    // Riabilita l'editor
+    // Usa setTimeout per assicurarsi che il DOM sia pronto
+    setTimeout(() => {
+        try {
+            editor.selection.moveToBookmark(bookmark);
+        } catch (e) {
+            // Se il bookmark fallisce, metti il cursore alla fine
+            editor.selection.select(editor.getBody(), true);
+            editor.selection.collapse(false);
+        }
+    }, 0);
     editor.mode.set('design');
 }
 
 /* Function for hiding preview and restoring shortcodes */
 function hidePreview(editor) {
-    // Inserisci un marker temporaneo unico nel punto del cursore
-    const marker = `<span id="cursor-marker-${Date.now()}" style="display:none;"></span>`;
-    editor.selection.setContent(marker);
-
     let content = editor.getContent();
 
     content = removeAdvPreview(content);
     content = parseFromPreviewToShortcodes(content);
 
     editor.setContent(content, { format: 'raw' });
-
-    // Trova il marker e posiziona il cursore lì
-    const markerElement = editor.dom.select('[id^="cursor-marker-"]')[0];
-    if (markerElement) {
-        editor.selection.select(markerElement);
-        editor.selection.collapse(true);
-        editor.dom.remove(markerElement);
-    }
 }
 
 /* Helper function to ensure shortcodes are in their own paragraphs */
