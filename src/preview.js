@@ -42,15 +42,8 @@ tinymce.PluginManager.add('preview', function (editor, url) {
 
     editor.on('keydown', function (e) {
         if (isActive) {
-            clearTimeout(previewDebounceTimer);
-            previewDebounceTimer = setTimeout(() => {
-                showPreview(editor);
-            }, 1000);
-        }
-        /*
-        if (isActive) {
             // Se premo ENTER, attivo il flag e avvio il debounce
-            if (e.key === 'Enter' || e.keyCode === 13) {
+            if (e.key === 'Enter' || e.key === 'Backspace' || e.key === 'Delete') {
                 enterPressed = true;
                 clearTimeout(previewDebounceTimer);
                 previewDebounceTimer = setTimeout(() => {
@@ -72,7 +65,6 @@ tinymce.PluginManager.add('preview', function (editor, url) {
             }
             // Se scrivo senza aver premuto ENTER, non faccio nulla
         }
-            */
     });
 
     editor.on('drop', async function (e) {
