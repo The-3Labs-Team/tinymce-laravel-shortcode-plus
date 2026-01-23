@@ -42,6 +42,29 @@ tinymce.PluginManager.add('preview', function (editor, url) {
 
     editor.on('keydown', function (e) {
         if (isActive) {
+            // Gestisci la cancellazione degli adv-preview
+            if (e.key === 'Backspace' || e.key === 'Delete') {
+                const node = editor.selection.getNode();
+                const advPreview = node.closest('.adv-preview');
+
+                if (advPreview) {
+                    e.preventDefault();
+                    advPreview.remove();
+                    return;
+                }
+
+                // Controlla se il cursore è adiacente a un adv-preview
+                const adjacentNode = e.key === 'Backspace'
+                    ? node.previousSibling
+                    : node.nextSibling;
+
+                if (adjacentNode && adjacentNode.classList && adjacentNode.classList.contains('adv-preview')) {
+                    e.preventDefault();
+                    adjacentNode.remove();
+                    return;
+                }
+            }
+
             // Se premo ENTER, attivo il flag e avvio il debounce
             if (e.key === 'Enter' || e.key === 'Backspace' || e.key === 'Delete') {
                 enterPressed = true;
@@ -272,15 +295,17 @@ async function parseAdvPreview(content) {
     data = data.replace(/<div id="adv__parsed__content">/g, '');
     data = data.replace(/<\/div>$/g, '');
 
-    //replace <small>[ADV PREVIEW]</small> with <span class="adv-preview">
-    data = data.replace(/<small>\[ADV PREVIEW\]<\/small>/g, '<span class="adv-preview" contenteditable="false" draggable="false" style="display:inline-block;position: absolute;background: #f0f0f0;font-size: 10px;width: 80%;text-align: center;margin: -15px 0;pointer-events: none;user-select: none;">Pubblicità</span>');
+    //replace <small>[ADV PREVIEW]</small> with <div class="adv-preview">
+    data = data.replace(/<small>\[ADV PREVIEW\]<\/small>/g, '<div class="adv-preview" contenteditable="false" draggable="false" style="display:block;background: #f0f0f0;font-size: 10px;text-align: center;padding: 0px 0; margin: 0px 0;pointer-events: none;user-select: none;">Pubblicità</div>');
 
     return data;
 }
 
 function removeAdvPreview(content) {
-    // Rimuovi i paragrafi che contengono SOLO span .adv-preview (e spazi/nbsp/br)
-    content = content.replace(/<p[^>]*>(?:&nbsp;|\s|<br\s*\/?>)*<span[^>]*class="adv-preview"[^>]*>.*?<\/span>(?:&nbsp;|\s|<br\s*\/?>)*<\/p>/g, '');
+    // Rimuovi i div .adv-preview
+    content = content.replace(/<div[^>]*class="adv-preview"[^>]*>.*?<\/div>/g, '');
+    // Rimuovi anche i paragrafi vuoti che potrebbero rimanere
+    content = content.replace(/<p[^>]*>(?:&nbsp;|\s|<br\s*\/?>)*<\/p>/g, '');
     return content;
 }
 
