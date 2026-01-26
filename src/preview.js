@@ -516,7 +516,7 @@ function parseDistico(content) {
         const text = disticoShortcode.match(/\[distico(?:\s+[^\]]+)?\](.*?)\[\/distico\]/s);
         const disticoText = text ? text[1].trim() : '';
 
-        const html = `<small class="shortcode-preview" style="display:inline-block; border-radius: 8px; border: 1px solid #7e7e7e; font-size: 14px; color: #1c1c1c; font-style: italic; padding: 10px; font-size: 14px; width: calc(80% - 20px);">${disticoText}</small>`
+        const html = `<small class="shortcode-preview" style="display:inline-block; border-radius: 8px; border: 1px solid #7e7e7e; font-size: 14px; color: #1c1c1c; font-style: italic; padding: 10px; font-size: 14px; width: calc(100% - 20px);">${disticoText}</small>`
 
         return createPreviewElement('distico', parsedShortcode, html);
     });
@@ -536,7 +536,7 @@ function parseSpoiler(content) {
         const text = spoilerShortcode.match(/\[spoiler(?:\s+[^\]]+)?\](.*?)\[\/spoiler\]/s);
         const spoilerText = text ? text[1].trim() : '';
 
-        const html = `<small class="shortcode-preview" style="display:inline-block; border-radius: 8px; border: 1px solid #ffd07a; font-size: 14px; padding: 10px; width: calc(80% - 20px);">👁️ <br /> ${spoilerText}</small>`
+        const html = `<small class="shortcode-preview" style="display:inline-block; border-radius: 8px; border: 1px solid #ffd07a; font-size: 14px; padding: 10px; width: calc(100% - 20px);">👁️ <br /> ${spoilerText}</small>`
 
         return createPreviewElement('spoiler', parsedShortcode, html);
     });
@@ -558,7 +558,7 @@ function parseFaq(content) {
         title = title ? title[1] : '';
         text = text ? text[1].trim() : '';
 
-        const html = `<small class="shortcode-preview" style="display:inline-block; border-radius: 8px; border: 1px solid #ff4e4e; font-size: 14px; color: #1c1c1c; font-style: italic; padding: 10px; position: relative; width: calc(80% - 20px);">
+        const html = `<small class="shortcode-preview" style="display:inline-block; border-radius: 8px; border: 1px solid #ff4e4e; font-size: 14px; color: #1c1c1c; font-style: italic; padding: 10px; position: relative; width: calc(100% - 20px);">
         ❓
         <br />
         <strong>${title}</strong>
