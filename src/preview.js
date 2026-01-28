@@ -198,19 +198,11 @@ async function showPreview (editor, fromDrop) {
 
   const scrollPosition = window.scrollY || document.documentElement.scrollTop
 
-  // Inserisci un marker unico per tracciare la posizione del cursore
-  const markerId = 'cursor-marker-' + Date.now()
-  const markerHtml = `<span id="${markerId}" data-cursor-marker="true"></span>`
+  // Salva la posizione del cursore usando il sistema di bookmark di TinyMCE
+  const bookmark = editor.selection.getBookmark(2)
 
-  // Collassa la selezione alla fine e inserisci il marker
-  editor.selection.collapse(false)
-  editor.insertContent(markerHtml)
+  let content = editor.getContent()
 
-  // Usa innerHTML per ottenere il contenuto con il marker
-  let content = editor.getBody().innerHTML
-
-  // Applica manualmente le trasformazioni che il handler GetContent normalmente esegue
-  content = parseFromPreviewToShortcodes(content)
   content = removeAdvPreview(content)
 
   // Assicura che gli shortcode siano sempre in propri paragrafi SOLO dopo un drop
@@ -223,27 +215,14 @@ async function showPreview (editor, fromDrop) {
 
   editor.setContent(content, { format: 'raw' })
 
-  // Ripristina il cursore alla posizione del marker
+  // Ripristina la posizione del cursore
   setTimeout(() => {
     try {
-      const marker = editor.getBody().querySelector('#' + markerId)
-      if (marker) {
-        editor.selection.select(marker)
-        editor.selection.collapse(true)
-        marker.remove()
-      }
-      window.scrollTo(0, scrollPosition)
+      editor.selection.moveToBookmark(bookmark)
     } catch (e) {
-      // Fallback: posiziona il cursore alla fine del contenuto
-      try {
-        const marker = editor.getBody().querySelector('#' + markerId)
-        if (marker) marker.remove()
-        editor.selection.select(editor.getBody(), true)
-        editor.selection.collapse(false)
-      } catch (_) {}
-      window.scrollTo(0, scrollPosition)
       console.warn('Cursor restoration failed:', e)
     }
+    window.scrollTo(0, scrollPosition)
   }, 50)
 }
 
