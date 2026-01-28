@@ -16,8 +16,11 @@ tinymce.PluginManager.add('preview', function (editor, url) {
       const previewSpan = target.closest('[data-preview-shortcode]')
       if (!previewSpan) return
 
+      // Seleziona lo span preview così insertContent nel plugin lo sostituirà
+      editor.selection.select(previewSpan)
+
       // Get shortcode dal data attribute
-      const shortcode = unescapeHtml(previewSpan.getAttribute('data-preview-shortcode'))
+      const shortcode = decodeHtmlEntities(previewSpan.getAttribute('data-preview-shortcode'))
       const shortcodeName = previewSpan.getAttribute('data-preview-shortcode-name')
 
       // Passa lo shortcode al comando con una callback per ricevere il risultato
@@ -222,12 +225,15 @@ async function showPreview (editor, fromDrop) {
 
   const scrollPosition = window.scrollY || document.documentElement.scrollTop
 
-  // Salva bookmark con tipo 3 (persistente) che include marker span nel contenuto
+  // Bookmark tipo 3: inserisce marker span persistenti nel DOM
   const bookmark = editor.selection.getBookmark(3)
 
-  let content = editor.getContent()
+  // Usa innerHTML invece di getContent() per preservare i bookmark marker
+  // (getContent() rimuove gli elementi data-mce-type="bookmark" tramite il serializer TinyMCE)
+  let content = editor.getBody().innerHTML
 
-  // Rimuovi adv preview esistente per evitare duplicati
+  // Applica manualmente le trasformazioni che il handler GetContent normalmente esegue
+  content = parseFromPreviewToShortcodes(content)
   content = removeAdvPreview(content)
 
   // Assicura che gli shortcode siano sempre in propri paragrafi SOLO dopo un drop
@@ -235,8 +241,23 @@ async function showPreview (editor, fromDrop) {
     content = ensureShortcodesInParagraphs(content)
   }
 
+  // Proteggi i bookmark marker dal processing server-side (parseAdvPreview)
+  const bookmarkMarkers = []
+  content = content.replace(
+    /<span[^>]*data-mce-type="bookmark"[^>]*>[\s\S]*?<\/span>/g,
+    function (marker) {
+      bookmarkMarkers.push(marker)
+      return '<!--mce-bm-' + (bookmarkMarkers.length - 1) + '-->'
+    }
+  )
+
   content = await parseAdvPreview(content)
   content = await parseFromShortcodesToPreview(content)
+
+  // Ripristina i bookmark marker
+  content = content.replace(/<!--mce-bm-(\d+)-->/g, function (_, idx) {
+    return bookmarkMarkers[parseInt(idx)] || ''
+  })
 
   editor.setContent(content, { format: 'raw' })
 
@@ -244,10 +265,15 @@ async function showPreview (editor, fromDrop) {
   setTimeout(() => {
     try {
       editor.selection.moveToBookmark(bookmark)
-      // Ripristina la posizione di scroll
       window.scrollTo(0, scrollPosition)
     } catch (e) {
-      console.error('Errore nel ripristino del cursore:', e)
+      // Fallback: posiziona il cursore alla fine del contenuto
+      try {
+        editor.selection.select(editor.getBody(), true)
+        editor.selection.collapse(false)
+      } catch (_) {}
+      window.scrollTo(0, scrollPosition)
+      console.warn('Bookmark restoration failed:', e)
     }
   }, 50)
 }
