@@ -181,6 +181,13 @@ function unescapeHtml (str) {
     .replace(/&amp;/g, '&')
 }
 
+function decodeHtmlEntities (str) {
+  if (str == null) return ''
+  const textarea = document.createElement('textarea')
+  textarea.innerHTML = String(str)
+  return textarea.value
+}
+
 function sanitizeUrl (url) {
   if (url == null) return ''
   const trimmed = String(url).trim()
@@ -191,7 +198,7 @@ function sanitizeUrl (url) {
 function getShortcodeAttr (shortcode, attrName, defaultValue) {
   if (defaultValue === undefined) defaultValue = null
   const match = shortcode.match(new RegExp(attrName + '=["\']([^"\']*)["\']'))
-  return match ? match[1] : defaultValue
+  return match ? decodeHtmlEntities(match[1]) : defaultValue
 }
 
 function getShortcodeAttrs (shortcode, attrDefaults) {
@@ -199,7 +206,7 @@ function getShortcodeAttrs (shortcode, attrDefaults) {
   const regex = /([\w-]+)=["']([^"']*?)["']/g
   let m
   while ((m = regex.exec(shortcode)) !== null) {
-    if (m[1] in attrDefaults) result[m[1]] = m[2]
+    if (m[1] in attrDefaults) result[m[1]] = decodeHtmlEntities(m[2])
   }
   for (const key in attrDefaults) {
     if (!(key in result)) result[key] = attrDefaults[key]
@@ -623,7 +630,7 @@ function parseDistico (content) {
 
   content = content.replace(disticoRegex, function (match) {
     const text = match.match(/\[distico(?:\s+[^\]]+)?\](.*?)\[\/distico\]/s)
-    const disticoText = text ? text[1].trim() : ''
+    const disticoText = text ? decodeHtmlEntities(text[1].trim()) : ''
 
     const html = `<small class="shortcode-preview" style="display:inline-block; border-radius: 8px; border: 1px solid #7e7e7e; font-size: 14px; color: #1c1c1c; font-style: italic; padding: 10px; font-size: 14px; width: calc(100% - 20px);">${escapeHtml(disticoText)}</small>`
 
@@ -638,7 +645,7 @@ function parseSpoiler (content) {
 
   content = content.replace(spoilerRegex, function (match) {
     const text = match.match(/\[spoiler(?:\s+[^\]]+)?\](.*?)\[\/spoiler\]/s)
-    const spoilerText = text ? text[1].trim() : ''
+    const spoilerText = text ? decodeHtmlEntities(text[1].trim()) : ''
 
     const html = `<small class="shortcode-preview" style="display:inline-block; border-radius: 8px; border: 1px solid #ffd07a; font-size: 14px; padding: 10px; width: calc(100% - 20px);">\uD83D\uDC41\uFE0F <br /> ${escapeHtml(spoilerText)}</small>`
 
@@ -654,7 +661,7 @@ function parseFaq (content) {
   content = content.replace(faqRegex, function (match) {
     const title = getShortcodeAttr(match, 'title', '')
     const textMatch = match.match(/\[faq(?:\s+[^\]]+)?\](.*?)\[\/faq\]/s)
-    const text = textMatch ? textMatch[1].trim() : ''
+    const text = textMatch ? decodeHtmlEntities(textMatch[1].trim()) : ''
 
     const html = `<small class="shortcode-preview" style="display:inline-block; border-radius: 8px; border: 1px solid #ff4e4e; font-size: 14px; color: #1c1c1c; font-style: italic; padding: 10px; position: relative; width: calc(100% - 20px);">
         \u2753
