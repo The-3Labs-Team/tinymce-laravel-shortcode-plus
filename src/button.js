@@ -2,9 +2,8 @@
 
 tinymce.PluginManager.add('button', function (editor, url) {
   const openDialog = function (selectedShortcode) {
-
     const buttonRegex = /^\[button(?:\s+[^\]]+)?\]$/
-    let initialData = {
+    const initialData = {
       link: '',
       label: '',
       level: 'primary',
@@ -54,7 +53,7 @@ tinymce.PluginManager.add('button', function (editor, url) {
           }
         ]
       },
-      initialData: initialData,
+      initialData,
       buttons: [
         {
           type: 'cancel',
@@ -76,11 +75,10 @@ tinymce.PluginManager.add('button', function (editor, url) {
         shortcode += ']'
 
         editor.insertContent(shortcode)
-        editor.execCommand('showPreview');
+        editor.execCommand('showPreview')
         api.close()
-      },
+      }
     })
-
   }
 
   /* Registra un comando per aprire il dialog */

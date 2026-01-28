@@ -81,7 +81,7 @@ tinymce.PluginManager.add('widgetbay', function (editor, url) {
 
   const openDialog = function (selectedShortcode) {
     const widgetbayRegex = /^\[widgetbay(?:\s+[^\]]+)?\]$/
-    let initialData = {
+    const initialData = {
       id: null,
       title: null,
       links: null,
@@ -98,7 +98,6 @@ tinymce.PluginManager.add('widgetbay', function (editor, url) {
 
       const links = linkMatch ? linkMatch[1].split(',') : []
 
-
       initialData.links = links
       initialData.id = idMatch ? idMatch[1] : null
       initialData.title = titleMatch ? titleMatch[1] : null
@@ -108,7 +107,7 @@ tinymce.PluginManager.add('widgetbay', function (editor, url) {
 
     tinymce.activeEditor.windowManager.open({
       title: 'Widgetbay',
-      initialData: initialData,
+      initialData,
       body: {
         type: 'panel',
         items: [
@@ -148,9 +147,7 @@ tinymce.PluginManager.add('widgetbay', function (editor, url) {
   }
 })
 
-
-
-function addNewLink() {
+function addNewLink () {
   const linksBox = document.getElementById('links-box')
 
   const links = linksBox.getElementsByTagName('input')
@@ -162,10 +159,10 @@ function addNewLink() {
   newLink.style.margin = '5px 0'
 
   linksBox.appendChild(newLink)
-  editor.execCommand('showPreview');
+  editor.execCommand('showPreview')
 }
 
-function generateShortcode() {
+function generateShortcode () {
   const formQuery = document.querySelector('#widgetbay-form')
 
   formQuery.addEventListener('submit', function (e) {
@@ -190,12 +187,12 @@ function generateShortcode() {
     const content = '[widgetbay ' + parsedId + parsedLink + parsedTitle + parsedForceLink + parsedPrice + ']'
 
     tinymce.activeEditor.insertContent(content)
-    tinymce.activeEditor.execCommand('showPreview');
+    tinymce.activeEditor.execCommand('showPreview')
     tinymce.activeEditor.windowManager.close()
   })
 }
 
-function fillInitialData(initialData) {
+function fillInitialData (initialData) {
   const idField = document.querySelector('input[name="widget-id"]')
   const linkField = document.querySelector('input[name="widget-url"]')
   const titleField = document.querySelector('input[name="widget-title"]')

@@ -11,13 +11,13 @@ tinymce.PluginManager.add('product', function (editor, url) {
             type: 'input',
             inputMode: 'numeric',
             name: 'id',
-            label: 'Add the product ID',
+            label: 'Add the product ID'
           },
           {
             type: 'input',
             inputMode: 'text',
             name: 'label',
-            label: 'Add the product label',
+            label: 'Add the product label'
           }
         ]
       },

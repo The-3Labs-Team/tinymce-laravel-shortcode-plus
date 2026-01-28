@@ -3,8 +3,8 @@
 tinymce.PluginManager.add('tiktok', function (editor, url) {
   const openDialog = function (selectedShortcode) {
     const buttonRegex = /^\[tiktok(?:\s+[^\]]+)?\]$/
-    let initialData = {
-      url: 'https://www.tiktok.com/@spaziogames/video/7596770986767338774',
+    const initialData = {
+      url: 'https://www.tiktok.com/@spaziogames/video/7596770986767338774'
     }
 
     if (selectedShortcode && buttonRegex.test(selectedShortcode)) {
@@ -14,7 +14,7 @@ tinymce.PluginManager.add('tiktok', function (editor, url) {
 
     return editor.windowManager.open({
       title: 'tiktok',
-      initialData: initialData,
+      initialData,
       body: {
         type: 'panel',
         items: [
@@ -42,7 +42,7 @@ tinymce.PluginManager.add('tiktok', function (editor, url) {
         const data = api.getData()
         /* Insert content when the window form is submitted */
         editor.insertContent('[tiktok url="' + data.url + '"]')
-        editor.execCommand('showPreview');
+        editor.execCommand('showPreview')
         api.close()
       }
     })

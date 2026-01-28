@@ -2,9 +2,9 @@
 
 tinymce.PluginManager.add('spoiler', function (editor, url) {
   const openDialog = function (selectedShortcode) {
-    const spoilerRegex = /\[spoiler(?:\s+[^\]]+)?\](.*?)\[\/spoiler\]/gs;
-    let initialData = {
-      spoiler: '',
+    const spoilerRegex = /\[spoiler(?:\s+[^\]]+)?\](.*?)\[\/spoiler\]/gs
+    const initialData = {
+      spoiler: ''
     }
 
     if (selectedShortcode && spoilerRegex.test(selectedShortcode)) {
@@ -14,7 +14,7 @@ tinymce.PluginManager.add('spoiler', function (editor, url) {
 
     return editor.windowManager.open({
       title: 'Spoiler',
-      initialData: initialData,
+      initialData,
       body: {
         type: 'panel',
         items: [
@@ -40,7 +40,7 @@ tinymce.PluginManager.add('spoiler', function (editor, url) {
         const data = api.getData()
         /* Insert content when the window form is submitted */
         editor.insertContent('[spoiler]' + data.spoiler + '[/spoiler]')
-        editor.execCommand('showPreview');
+        editor.execCommand('showPreview')
         api.close()
       }
     })

@@ -48,11 +48,11 @@ tinymce.PluginManager.add('survey', function (editor, url) {
 `
 
   const openDialog = function (selectedShortcode) {
-    const selectedId = selectedShortcode ? selectedShortcode.match(/id=["']([^"']*)["']/)[1] : null;
+    const selectedId = selectedShortcode ? selectedShortcode.match(/id=["']([^"']*)["']/)[1] : null
 
     tinymce.activeEditor.windowManager.open({
       title: 'Survey',
-      selectedId: selectedId,
+      selectedId,
       body: {
         type: 'panel',
         items: [
@@ -99,12 +99,12 @@ tinymce.PluginManager.add('survey', function (editor, url) {
 
 // === FUNCTIONS === //
 
-async function lastSurvey(selectedId = null) {
+async function lastSurvey (selectedId = null) {
   const lastSurveys = await getSurveys()
   printSurvey(lastSurveys, selectedId)
 }
 
-async function getSurveys(query = '') {
+async function getSurveys (query = '') {
   try {
     let url = '/nova-vendor/the-3labs-team/nova-survey-package/search'
     if (query !== '') {
@@ -115,21 +115,21 @@ async function getSurveys(query = '') {
       headers: {
         'Content-Type': 'application/json'
       }
-    });
+    })
 
     if (!response.ok) {
-      throw new Error('Error in Nova API Request');
+      throw new Error('Error in Nova API Request')
     }
 
-    const lastSurvey = await response.json();
-    return lastSurvey.data;
+    const lastSurvey = await response.json()
+    return lastSurvey.data
   } catch (error) {
-    console.error(error);
-    return { success: false, data: error.message };
+    console.error(error)
+    return { success: false, data: error.message }
   }
 }
 
-function printSurvey(surveys, selectedId = null) {
+function printSurvey (surveys, selectedId = null) {
   const lastSurveyContainer = document.querySelector('#last-survey-container')
 
   // Reset container
@@ -156,7 +156,7 @@ function printSurvey(surveys, selectedId = null) {
   }
 }
 
-function searchSurvey(selectedId = null) {
+function searchSurvey (selectedId = null) {
   const formQuery = document.querySelector('.tox-dialog__content-js form#querySurvey')
   const container = document.querySelector('#last-survey-container')
 
@@ -173,10 +173,9 @@ function searchSurvey(selectedId = null) {
 
     printSurvey(surveys, selectedId)
   })
-
 }
 
-function insetData(editor) {
+function insetData (editor) {
   const formSurvey = document.querySelector('.tox-dialog__content-js form#survey-data')
 
   formSurvey.addEventListener('submit', function (e) {
@@ -187,7 +186,7 @@ function insetData(editor) {
 
     const result = `[survey id="${id}"]`
     editor.insertContent(result)
-    editor.execCommand('showPreview');
+    editor.execCommand('showPreview')
     tinymce.activeEditor.windowManager.close()
   })
 }

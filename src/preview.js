@@ -164,38 +164,11 @@ tinymce.PluginManager.add('preview', function (editor, url) {
 
 // ===== UTILITY FUNCTIONS ===== //
 
-function escapeHtml (str) {
-  if (str == null) return ''
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;')
-}
-
-function unescapeHtml (str) {
-  if (str == null) return ''
-  return String(str)
-    .replace(/&#039;/g, "'")
-    .replace(/&quot;/g, '"')
-    .replace(/&gt;/g, '>')
-    .replace(/&lt;/g, '<')
-    .replace(/&amp;/g, '&')
-}
-
 function decodeHtmlEntities (str) {
   if (str == null) return ''
   const textarea = document.createElement('textarea')
   textarea.innerHTML = String(str)
   return textarea.value
-}
-
-function sanitizeUrl (url) {
-  if (url == null) return ''
-  const trimmed = String(url).trim()
-  if (/^(javascript|data|vbscript):/i.test(trimmed)) return ''
-  return escapeHtml(trimmed)
 }
 
 function getShortcodeAttr (shortcode, attrName, defaultValue) {
@@ -225,11 +198,15 @@ async function showPreview (editor, fromDrop) {
 
   const scrollPosition = window.scrollY || document.documentElement.scrollTop
 
-  // Bookmark tipo 3: inserisce marker span persistenti nel DOM
-  const bookmark = editor.selection.getBookmark(3)
+  // Inserisci un marker unico per tracciare la posizione del cursore
+  const markerId = 'cursor-marker-' + Date.now()
+  const markerHtml = `<span id="${markerId}" data-cursor-marker="true"></span>`
 
-  // Usa innerHTML invece di getContent() per preservare i bookmark marker
-  // (getContent() rimuove gli elementi data-mce-type="bookmark" tramite il serializer TinyMCE)
+  // Collassa la selezione alla fine e inserisci il marker
+  editor.selection.collapse(false)
+  editor.insertContent(markerHtml)
+
+  // Usa innerHTML per ottenere il contenuto con il marker
   let content = editor.getBody().innerHTML
 
   // Applica manualmente le trasformazioni che il handler GetContent normalmente esegue
@@ -241,39 +218,31 @@ async function showPreview (editor, fromDrop) {
     content = ensureShortcodesInParagraphs(content)
   }
 
-  // Proteggi i bookmark marker dal processing server-side (parseAdvPreview)
-  const bookmarkMarkers = []
-  content = content.replace(
-    /<span[^>]*data-mce-type="bookmark"[^>]*>[\s\S]*?<\/span>/g,
-    function (marker) {
-      bookmarkMarkers.push(marker)
-      return '<!--mce-bm-' + (bookmarkMarkers.length - 1) + '-->'
-    }
-  )
-
   content = await parseAdvPreview(content)
   content = await parseFromShortcodesToPreview(content)
 
-  // Ripristina i bookmark marker
-  content = content.replace(/<!--mce-bm-(\d+)-->/g, function (_, idx) {
-    return bookmarkMarkers[parseInt(idx)] || ''
-  })
-
   editor.setContent(content, { format: 'raw' })
 
-  // Ripristina il cursore nella posizione corretta
+  // Ripristina il cursore alla posizione del marker
   setTimeout(() => {
     try {
-      editor.selection.moveToBookmark(bookmark)
+      const marker = editor.getBody().querySelector('#' + markerId)
+      if (marker) {
+        editor.selection.select(marker)
+        editor.selection.collapse(true)
+        marker.remove()
+      }
       window.scrollTo(0, scrollPosition)
     } catch (e) {
       // Fallback: posiziona il cursore alla fine del contenuto
       try {
+        const marker = editor.getBody().querySelector('#' + markerId)
+        if (marker) marker.remove()
         editor.selection.select(editor.getBody(), true)
         editor.selection.collapse(false)
       } catch (_) {}
       window.scrollTo(0, scrollPosition)
-      console.warn('Bookmark restoration failed:', e)
+      console.warn('Cursor restoration failed:', e)
     }
   }, 50)
 }
@@ -358,15 +327,45 @@ function ensureShortcodesInParagraphs (content) {
   return doc.body.innerHTML
 }
 
+// ===== ADV PREVIEW OPTIMIZATION ===== //
+
+let advPreviewController = null
+let advPreviewCache = { content: null, response: null }
+const ADV_PREVIEW_TIMEOUT_MS = 5000
+
+function hashContent (str) {
+  let hash = 5381
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) + hash + str.charCodeAt(i)) | 0
+  }
+  return hash
+}
+
 async function parseAdvPreview (content) {
+  const contentHash = hashContent(content)
+
+  if (advPreviewCache.content === contentHash) {
+    return advPreviewCache.response
+  }
+
+  if (advPreviewController) {
+    advPreviewController.abort()
+  }
+  advPreviewController = new AbortController()
+  const { signal } = advPreviewController
+  const timeoutId = setTimeout(() => advPreviewController.abort(), ADV_PREVIEW_TIMEOUT_MS)
+
   try {
     const response = await fetch('/ads-post-parser/get-preview-html', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ raw_html: content })
+      body: JSON.stringify({ raw_html: content }),
+      signal
     })
+
+    clearTimeout(timeoutId)
 
     if (!response.ok) {
       console.warn('parseAdvPreview: server returned', response.status)
@@ -382,8 +381,14 @@ async function parseAdvPreview (content) {
     // replace <small>[ADV PREVIEW]</small> with <div class="adv-preview">
     data = data.replace(/<small>\[ADV PREVIEW\]<\/small>/g, '<div class="adv-preview" contenteditable="false" draggable="false" style="display:block;background: #f0f0f0;font-size: 10px;text-align: center;padding: 0px 0; margin: 0px 0;pointer-events: none;user-select: none;">Pubblicit\u00e0</div>')
 
+    advPreviewCache = { content: contentHash, response: data }
+
     return data
   } catch (error) {
+    clearTimeout(timeoutId)
+    if (error.name === 'AbortError') {
+      return content
+    }
     console.warn('parseAdvPreview failed, returning original content:', error)
     return content
   }
@@ -429,7 +434,7 @@ async function parseFromShortcodesToPreview (content) {
 /* Convert from preview spans to shortcodes */
 function parseFromPreviewToShortcodes (content) {
   content = content.replace(/<span[^>]*data-preview-shortcode="([^"]+)"[^>]*>.*?<\/span>/g, function (_match, p1) {
-    return unescapeHtml(p1)
+    return p1
   })
 
   return content
@@ -437,7 +442,7 @@ function parseFromPreviewToShortcodes (content) {
 
 /* Function to create preview element container (span with data-preview-shortcode) */
 function createPreviewElement (shortcodeName, shortcode, previewHtml) {
-  return `<span contenteditable="false" data-preview-shortcode-name="${escapeHtml(shortcodeName)}" data-preview-shortcode="${escapeHtml(shortcode)}" style="">
+  return `<span contenteditable="false" data-preview-shortcode-name="${shortcodeName}" data-preview-shortcode="${shortcode}" style="">
         ${previewHtml}
     </span>`
 }
@@ -492,7 +497,7 @@ function createSocialParser (name) {
       const html = `<small class="shortcode-preview" style="display:inline-block; border-radius: 10px; border: 2px dashed ${platform.color}; font-size: 14px; width: 100%;">
                 <small style="display: block; text-align: center; font-weight: 500; color: #969696; padding: 50px 10px;">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" style="width: 30px; fill: ${platform.color};">${platform.svg}</svg>
-                    <br /> ${escapeHtml(url)}</small></small>`
+                    <br /> ${url}</small></small>`
 
       return createPreviewElement(name, match, html)
     })
@@ -506,7 +511,7 @@ function createPlaceholderParser (config) {
     return content.replace(regex, function (match) {
       let displayText = config.label
       if (config.attrName) {
-        displayText += ': ' + escapeHtml(getShortcodeAttr(match, config.attrName, 'N/A'))
+        displayText += ': ' + getShortcodeAttr(match, config.attrName, 'N/A')
       }
 
       const html = `<small class="shortcode-preview" style="display:inline-block; border-radius: 10px; border: 2px dashed ${config.color}; font-size: 14px; width: 100%;">
@@ -557,7 +562,7 @@ function parseButton (content) {
       ? 'background-color: #0ea5e9; color: white;'
       : 'background-color: #9f9f9f; color: white;'
 
-    const html = `<small class="shortcode-preview" style="display:inline-block; padding: 10px 20px; border-radius: 10px; text-align: center; text-decoration:none; font-size: 14px; ${levelStyle}">${escapeHtml(label)}</small>`
+    const html = `<small class="shortcode-preview" style="display:inline-block; padding: 10px 20px; border-radius: 10px; text-align: center; text-decoration:none; font-size: 14px; ${levelStyle}">${label}</small>`
 
     return createPreviewElement('button', match, html)
   })
@@ -575,7 +580,7 @@ function parseWidgetbay (content) {
     const html = `<small class="shortcode-preview" style="display:inline-block; border-radius: 10px; border: 2px dashed #14b8a6; font-size: 14px; width: 100%;">
             <small style="display: block; text-align: center; font-weight: 500; color: #969696; padding: 50px 10px;">
                 \uD83D\uDED2 Widgetbox
-                <br /> ${id ? 'ID: ' + escapeHtml(id) : escapeHtml(link)}
+                <br /> ${id ? 'ID: ' + id : link}
             </small>
         </small>`
 
@@ -629,19 +634,19 @@ async function parsePhoto (content) {
 
             <small style="position: absolute; top: 0; right :0; display: grid; text-align: left; padding: 6px 10px; font-size: 0.7rem; background: #eeeeee;
                 border-bottom-left-radius: 8px; grid-template-columns: repeat(${totalFloatOptions > 1 ? 2 : 1}, minmax(0, 1fr)); gap: 2px 5px;">
-                    ${align ? `<small><strong>Alignment:</strong> ${escapeHtml(align)}</small>` : ''}
-                    ${effect ? `<small><strong>Effect:</strong> ${escapeHtml(effect)}</small>` : ''}
-                    ${maxWidth ? `<small><strong>Max Width:</strong> ${escapeHtml(maxWidth)}px</small>` : ''}
+                    ${align ? `<small><strong>Alignment:</strong> ${align}</small>` : ''}
+                    ${effect ? `<small><strong>Effect:</strong> ${effect}</small>` : ''}
+                    ${maxWidth ? `<small><strong>Max Width:</strong> ${maxWidth}px</small>` : ''}
                     <small><strong>Zoom:</strong> ${zoomEnabled ? 'YES' : 'NO'}</small>
             </small>
 
             <small style="display: grid; grid-template-columns: repeat(${imageUrls.length > 3 ? 4 : imageUrls.length}, minmax(0, 1fr));">
-                ${imageUrls.map((url, index) => `<img src="${sanitizeUrl(url)}" alt="MediaHub Image ${escapeHtml(ids[index])}" style="width: 100%; aspect-ratio: ${imageUrls.length > 1 ? '1 / 1' : 'auto'}; object-fit: cover;" />`).join('')}
+                ${imageUrls.map((url, index) => `<img src="${url}" alt="MediaHub Image ${ids[index]}" style="width: 100%; aspect-ratio: ${imageUrls.length > 1 ? '1 / 1' : 'auto'}; object-fit: cover;" />`).join('')}
             </small>
 
             <small style="${caption || link ? 'padding: 5px 0; background: #eeeeee;' : ''}">
-                ${caption ? escapeHtml(caption) + '<br />' : ''}
-                ${link ? escapeHtml(link) : ''}
+                ${caption ? caption + '<br />' : ''}
+                ${link || ''}
             </small>
         </small> `
 
@@ -658,7 +663,7 @@ function parseDistico (content) {
     const text = match.match(/\[distico(?:\s+[^\]]+)?\](.*?)\[\/distico\]/s)
     const disticoText = text ? decodeHtmlEntities(text[1].trim()) : ''
 
-    const html = `<small class="shortcode-preview" style="display:inline-block; border-radius: 8px; border: 1px solid #7e7e7e; font-size: 14px; color: #1c1c1c; font-style: italic; padding: 10px; font-size: 14px; width: calc(100% - 20px);">${escapeHtml(disticoText)}</small>`
+    const html = `<small class="shortcode-preview" style="display:inline-block; border-radius: 8px; border: 1px solid #7e7e7e; font-size: 14px; color: #1c1c1c; font-style: italic; padding: 10px; font-size: 14px; width: calc(100% - 20px);">${disticoText}</small>`
 
     return createPreviewElement('distico', match, html)
   })
@@ -673,7 +678,7 @@ function parseSpoiler (content) {
     const text = match.match(/\[spoiler(?:\s+[^\]]+)?\](.*?)\[\/spoiler\]/s)
     const spoilerText = text ? decodeHtmlEntities(text[1].trim()) : ''
 
-    const html = `<small class="shortcode-preview" style="display:inline-block; border-radius: 8px; border: 1px solid #ffd07a; font-size: 14px; padding: 10px; width: calc(100% - 20px);">\uD83D\uDC41\uFE0F <br /> ${escapeHtml(spoilerText)}</small>`
+    const html = `<small class="shortcode-preview" style="display:inline-block; border-radius: 8px; border: 1px solid #ffd07a; font-size: 14px; padding: 10px; width: calc(100% - 20px);">\uD83D\uDC41\uFE0F <br /> ${spoilerText}</small>`
 
     return createPreviewElement('spoiler', match, html)
   })
@@ -692,9 +697,9 @@ function parseFaq (content) {
     const html = `<small class="shortcode-preview" style="display:inline-block; border-radius: 8px; border: 1px solid #ff4e4e; font-size: 14px; color: #1c1c1c; font-style: italic; padding: 10px; position: relative; width: calc(100% - 20px);">
         \u2753
         <br />
-        <strong>${escapeHtml(title)}</strong>
+        <strong>${title}</strong>
         <br />
-        ${escapeHtml(text)}
+        ${text}
         </small>`
 
     return createPreviewElement('faq', match, html)

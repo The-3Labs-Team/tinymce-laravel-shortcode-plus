@@ -3,8 +3,8 @@
 tinymce.PluginManager.add('instagram', function (editor, url) {
   const openDialog = function (selectedShortcode) {
     const buttonRegex = /^\[instagram(?:\s+[^\]]+)?\]$/
-    let initialData = {
-      url: '',
+    const initialData = {
+      url: ''
     }
 
     if (selectedShortcode && buttonRegex.test(selectedShortcode)) {
@@ -14,7 +14,7 @@ tinymce.PluginManager.add('instagram', function (editor, url) {
 
     return editor.windowManager.open({
       title: 'Instagram',
-      initialData: initialData,
+      initialData,
       body: {
         type: 'panel',
         items: [
@@ -42,7 +42,7 @@ tinymce.PluginManager.add('instagram', function (editor, url) {
         const data = api.getData()
         /* Insert content when the window form is submitted */
         editor.insertContent('[instagram url="' + data.url + '"]')
-        editor.execCommand('showPreview');
+        editor.execCommand('showPreview')
         api.close()
       }
     })
