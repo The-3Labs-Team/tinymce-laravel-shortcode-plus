@@ -138,7 +138,7 @@ function printSurvey (surveys, selectedId = null) {
   if (surveys.length > 0) {
     surveys.forEach((survey, index) => {
       lastSurveyContainer.innerHTML += `
-        <tr style="border-bottom: 1px solid #ababab; cursor: pointer; position: relative; ${selectedId == survey.id ? 'border: 1px solid #0ea5e9; background-color: #d9f1fc;' : ''}">
+        <tr style="border-bottom: 1px solid #ababab; cursor: pointer; position: relative; ${selectedId === String(survey.id) ? 'border: 1px solid #0ea5e9; background-color: #d9f1fc;' : ''}">
             <input type="checkbox" name="survey" id="survey-${survey.id}" value="${survey.id}" class="checkboxes" style="display: none;"
             onclick="document.querySelector('.tox-dialog__content-js form#survey-data').dispatchEvent(new Event('submit'))">
             <td style="padding: 10px;">

@@ -1,7 +1,7 @@
 /* global tinymce */
 
 // Variabile globale per tracciare gli ID delle foto selezionate
-let photo_ids = []
+let photoIds = []
 
 tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
   const content = `
@@ -192,8 +192,8 @@ tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
   `
 
   const openDialog = function (selectedShortcode) {
-    // Reset photo_ids all'apertura del dialog
-    photo_ids = []
+    // Reset photoIds all'apertura del dialog
+    photoIds = []
 
     const photoRegex = /^\[photo(?:\s+[^\]]+)?\]$/
     const initialData = {
@@ -360,7 +360,7 @@ function printCards (cards, container, range = 3) {
   // Print cards on DOM
   if (cards.length > 0) {
     cards.forEach((card, index) => {
-      const isSelected = photo_ids.includes(card.id)
+      const isSelected = photoIds.includes(card.id)
       const activeClass = isSelected ? 'active' : ''
       const borderColor = isSelected ? '#4f46e5' : '#e5e7eb'
       const boxShadow = isSelected ? '0 4px 10px rgba(79, 70, 229, 0.3)' : '0 2px 5px rgba(0,0,0,0.1)'
@@ -440,21 +440,22 @@ function searchInNova (keyword) {
 
 // Get the ids of the selected images
 function getIds () {
-  return photo_ids.join(',')
+  return photoIds.join(',')
 }
 
 // Toggle photo selection
+// eslint-disable-next-line no-unused-vars
 function togglePhotoSelection (id) {
-  const index = photo_ids.indexOf(id)
+  const index = photoIds.indexOf(id)
   const card = document.querySelector(`.photo-card[data-id="${id}"]`)
 
   if (index > -1) {
     // Rimuovi ID dall'array
-    photo_ids.splice(index, 1)
+    photoIds.splice(index, 1)
     deselectCard(card)
   } else {
     // Aggiungi ID all'array
-    photo_ids.push(id)
+    photoIds.push(id)
     selectCard(card)
   }
 }
@@ -720,6 +721,7 @@ function generateImagePreviews (files, iconElement) {
 }
 
 // Handle upload button click
+// eslint-disable-next-line no-unused-vars
 async function handleUploadButtonClick () {
   const fileInput = document.querySelector('#file-input')
   const files = fileInput.files
@@ -756,8 +758,8 @@ async function handleUploadButtonClick () {
     // Seleziona automaticamente le immagini caricate
     const container = document.querySelector('#card-container')
     mediaList.forEach(media => {
-      if (!photo_ids.includes(media.id)) {
-        photo_ids.push(media.id)
+      if (!photoIds.includes(media.id)) {
+        photoIds.push(media.id)
         const card = container.querySelector(`.photo-card[data-id="${media.id}"]`)
         if (card) {
           selectCard(card)
@@ -964,12 +966,12 @@ function fillPhotoInitialData (initialData) {
   if (initialData.ids) {
     const ids = initialData.ids.split(',')
 
-    // Popola l'array photo_ids
-    photo_ids = ids.map(id => parseInt(id.trim())).filter(id => !isNaN(id))
+    // Popola l'array photoIds
+    photoIds = ids.map(id => parseInt(id.trim())).filter(id => !isNaN(id))
 
     // Usa setTimeout per assicurarti che il DOM sia completamente aggiornato
     setTimeout(() => {
-      photo_ids.forEach(id => {
+      photoIds.forEach(id => {
         const card = document.querySelector(`.photo-card[data-id="${id}"]`)
         if (card) {
           selectCard(card)

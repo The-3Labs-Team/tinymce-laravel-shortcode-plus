@@ -147,6 +147,7 @@ tinymce.PluginManager.add('widgetbay', function (editor, url) {
   }
 })
 
+// eslint-disable-next-line no-unused-vars
 function addNewLink () {
   const linksBox = document.getElementById('links-box')
 
@@ -159,7 +160,6 @@ function addNewLink () {
   newLink.style.margin = '5px 0'
 
   linksBox.appendChild(newLink)
-  editor.execCommand('showPreview')
 }
 
 function generateShortcode () {

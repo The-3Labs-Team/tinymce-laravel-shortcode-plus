@@ -142,7 +142,7 @@ function printTrivia (trivias, selectedId = null) {
         <tr style="border-bottom: 1px solid #ababab; cursor: pointer; position: relative" >
             <input type="checkbox" name="trivia" id="trivia-${trivia.id}" value="${trivia.id}" class="checkboxes" style="display: none;"
             onclick="document.querySelector('.tox-dialog__content-js form#trivia-data').dispatchEvent(new Event('submit'))">
-            <td style="padding: 10px;  ${selectedId == trivia.id ? 'border: 1px solid #0ea5e9; background-color: #d9f1fc;' : ''}">
+            <td style="padding: 10px;  ${selectedId === String(trivia.id) ? 'border: 1px solid #0ea5e9; background-color: #d9f1fc;' : ''}">
                 <label for="trivia-${trivia.id}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></label>
                 ${trivia.topic} ${selectedId}
             </td>
