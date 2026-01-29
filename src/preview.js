@@ -2,8 +2,7 @@
 
 tinymce.PluginManager.add('preview', function (editor, url) {
   let isActive = false
-  let previewDebounceTimer
-  let enterPressed = false
+  let advUpdateTimer = null
 
   editor.on('click', function (e) {
     const target = e.target.closest('.shortcode-preview')
@@ -45,10 +44,10 @@ tinymce.PluginManager.add('preview', function (editor, url) {
 
   editor.on('keydown', function (e) {
     if (isActive) {
-      // Gestisci la cancellazione degli adv-preview
+      // Gestisci la cancellazione degli adv-preview e adv-preview-overlay
       if (e.key === 'Backspace' || e.key === 'Delete') {
         const node = editor.selection.getNode()
-        const advPreview = node.closest('.adv-preview')
+        const advPreview = node.closest('.adv-preview') || node.closest('.adv-preview-overlay')
 
         if (advPreview) {
           e.preventDefault()
@@ -61,34 +60,13 @@ tinymce.PluginManager.add('preview', function (editor, url) {
           ? node.previousSibling
           : node.nextSibling
 
-        if (adjacentNode && adjacentNode.classList && adjacentNode.classList.contains('adv-preview')) {
+        if (adjacentNode && adjacentNode.classList &&
+            (adjacentNode.classList.contains('adv-preview') || adjacentNode.classList.contains('adv-preview-overlay'))) {
           e.preventDefault()
           adjacentNode.remove()
-          return
         }
       }
-
-      // Se premo ENTER, attivo il flag e avvio il debounce
-      if (e.key === 'Enter' || e.key === 'Backspace' || e.key === 'Delete') {
-        enterPressed = true
-        clearTimeout(previewDebounceTimer)
-        previewDebounceTimer = setTimeout(() => {
-          if (enterPressed) {
-            showPreview(editor)
-            enterPressed = false
-          }
-        }, 1000)
-      } else if (enterPressed) {
-      // Se scrivo altro e ho già premuto ENTER, resetto il debounce
-        clearTimeout(previewDebounceTimer)
-        previewDebounceTimer = setTimeout(() => {
-          if (enterPressed) {
-            showPreview(editor)
-            enterPressed = false
-          }
-        }, 1000)
-      }
-      // Se scrivo senza aver premuto ENTER, non faccio nulla
+      // ENTER non triggera più showPreview - il contenuto non viene più rimpiazzato
     }
   })
 
@@ -98,12 +76,31 @@ tinymce.PluginManager.add('preview', function (editor, url) {
     }
   })
 
+  // MutationObserver per aggiornare le ADV quando cambiano i paragrafi
+  editor.on('init', function () {
+    const body = editor.getBody()
+    body.setAttribute('data-last-paragraph-count', body.querySelectorAll('p').length)
+
+    const observer = new MutationObserver(() => {
+      if (!isActive) return
+
+      clearTimeout(advUpdateTimer)
+      advUpdateTimer = setTimeout(() => {
+        updateAdvOverlaysIfNeeded(editor)
+      }, 300)
+    })
+
+    observer.observe(body, { childList: true, subtree: true })
+  })
+
   /**
      * GetContent: Trasforma i placeholder in shortcode all'output
      * Questo viene eseguito quando il contenuto viene estratto dall'editor
      */
   editor.on('GetContent', function (e) {
     if (e.content) {
+      // Remove any cursor markers that might have been left behind
+      e.content = e.content.replace(/<span[^>]*data-mce-cursor-marker="true"[^>]*><\/span>/g, '')
       e.content = parseFromPreviewToShortcodes(e.content)
       e.content = removeAdvPreview(e.content)
     }
@@ -114,12 +111,16 @@ tinymce.PluginManager.add('preview', function (editor, url) {
     */
   editor.on('PostProcess', function (e) {
     if (e.get && e.content) {
+      // Remove any cursor markers that might have been left behind
+      e.content = e.content.replace(/<span[^>]*data-mce-cursor-marker="true"[^>]*><\/span>/g, '')
       e.content = parseFromPreviewToShortcodes(e.content)
       e.content = removeAdvPreview(e.content)
     }
   })
 
   editor.ui.registry.addIcon('previewplay', '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" height="1em"><path d="M187.2 100.9C174.8 94.1 159.8 94.4 147.6 101.6C135.4 108.8 128 121.9 128 136L128 504C128 518.1 135.5 531.2 147.6 538.4C159.7 545.6 174.8 545.9 187.2 539.1L523.2 355.1C536 348.1 544 334.6 544 320C544 305.4 536 291.9 523.2 284.9L187.2 100.9z"/></svg>')
+
+  editor.ui.registry.addIcon('sourcecode', '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="1em"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>')
 
   editor.ui.registry.addToggleButton('preview', {
     text: 'Preview',
@@ -152,6 +153,38 @@ tinymce.PluginManager.add('preview', function (editor, url) {
     }
   })
 
+  editor.ui.registry.addButton('sourcecode', {
+    text: 'Source',
+    icon: 'sourcecode',
+    tooltip: 'Visualizza codice sorgente',
+    onAction: function () {
+      const content = editor.getContent()
+
+      editor.windowManager.open({
+        title: 'Source Code',
+        size: 'large',
+        body: {
+          type: 'panel',
+          items: [{
+            type: 'textarea',
+            name: 'source',
+            maximized: true
+          }]
+        },
+        initialData: { source: content },
+        buttons: [
+          { type: 'cancel', text: 'Chiudi' },
+          { type: 'submit', text: 'Aggiorna', primary: true }
+        ],
+        onSubmit: function (api) {
+          const data = api.getData()
+          editor.setContent(data.source)
+          api.close()
+        }
+      })
+    }
+  })
+
   return {
     getMetadata: function () {
       return {
@@ -169,6 +202,16 @@ function decodeHtmlEntities (str) {
   const textarea = document.createElement('textarea')
   textarea.innerHTML = String(str)
   return textarea.value
+}
+
+function escapeHtml (str) {
+  if (str == null) return ''
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
 }
 
 function getShortcodeAttr (shortcode, attrName, defaultValue) {
@@ -192,38 +235,237 @@ function getShortcodeAttrs (shortcode, attrDefaults) {
 
 // ===== CORE PREVIEW FUNCTIONS ===== //
 
-/* Function for showing preview by replacing shortcodes */
+/* Function for showing preview by DOM manipulation (no content replacement) */
 async function showPreview (editor, fromDrop) {
   if (fromDrop === undefined) fromDrop = false
 
-  const scrollPosition = window.scrollY || document.documentElement.scrollTop
+  const body = editor.getBody()
+  const doc = editor.getDoc()
 
-  // Salva la posizione del cursore usando il sistema di bookmark di TinyMCE
-  const bookmark = editor.selection.getBookmark(2)
+  // 1. Rimuovi preview esistenti (per refresh)
+  removeExistingPreviews(body)
 
-  let content = editor.getContent()
+  // 2. Trova e wrappa gli shortcode con preview spans (manipolazione DOM diretta)
+  await wrapShortcodesWithPreview(editor, body, doc)
 
-  content = removeAdvPreview(content)
+  // 3. Aggiungi overlay ADV in posizione assoluta (senza modificare contenuto)
+  await addAdvOverlays(editor, body, doc)
+}
 
-  // Assicura che gli shortcode siano sempre in propri paragrafi SOLO dopo un drop
-  if (fromDrop) {
-    content = ensureShortcodesInParagraphs(content)
+/* Aggiorna le ADV solo se il numero di paragrafi e' cambiato */
+async function updateAdvOverlaysIfNeeded (editor) {
+  const body = editor.getBody()
+  const currentCount = body.querySelectorAll('p').length
+
+  // Usa data attribute per tracciare il conteggio precedente
+  const lastCount = parseInt(body.getAttribute('data-last-paragraph-count') || '0', 10)
+
+  if (currentCount !== lastCount) {
+    body.setAttribute('data-last-paragraph-count', currentCount)
+
+    // Rimuovi overlay ADV esistenti
+    body.querySelectorAll('.adv-preview-overlay').forEach(el => el.remove())
+
+    // Ricalcola posizioni ADV
+    await addAdvOverlays(editor, body, editor.getDoc())
+  }
+}
+
+/* Rimuove le preview esistenti per permettere il refresh */
+function removeExistingPreviews (body) {
+  // Rimuovi preview shortcode spans
+  const previewSpans = body.querySelectorAll('[data-preview-shortcode]')
+  previewSpans.forEach(span => {
+    const shortcode = decodeHtmlEntities(span.getAttribute('data-preview-shortcode'))
+    const textNode = document.createTextNode(shortcode)
+    span.parentNode.replaceChild(textNode, span)
+  })
+
+  // Rimuovi overlay ADV
+  const advOverlays = body.querySelectorAll('.adv-preview-overlay')
+  advOverlays.forEach(overlay => overlay.remove())
+}
+
+/* Trova shortcode nei nodi di testo e li wrappa con preview spans */
+async function wrapShortcodesWithPreview (editor, body, doc) {
+  // Pattern per tutti gli shortcode supportati
+  const shortcodePatterns = [
+    // Shortcode con contenuto (opening + content + closing)
+    /\[(distico|spoiler|faq)(?:\s+[^\]]+)?\][\s\S]*?\[\/\1\]/g,
+    // Shortcode singoli
+    /\[(button|widgetbay|photo|index|leggianche|trivia|survey|facebook|instagram|twitter|bluesky|reddit|youtube|tiktok|spotify)(?:\s+[^\]]+)?\]/g
+  ]
+
+  // Trova tutti i nodi di testo
+  const walker = doc.createTreeWalker(body, NodeFilter.SHOW_TEXT, null, false)
+  const textNodes = []
+  while (walker.nextNode()) {
+    // Skip nodi già dentro preview spans o elementi non editabili
+    if (!walker.currentNode.parentElement.closest('[data-preview-shortcode]') &&
+        !walker.currentNode.parentElement.closest('[contenteditable="false"]')) {
+      textNodes.push(walker.currentNode)
+    }
   }
 
-  content = await parseAdvPreview(content)
-  content = await parseFromShortcodesToPreview(content)
+  // Processa ogni nodo di testo
+  for (const textNode of textNodes) {
+    const text = textNode.textContent
+    let hasMatch = false
 
-  editor.setContent(content, { format: 'raw' })
-
-  // Ripristina la posizione del cursore
-  setTimeout(() => {
-    try {
-      editor.selection.moveToBookmark(bookmark)
-    } catch (e) {
-      console.warn('Cursor restoration failed:', e)
+    // Verifica se ci sono shortcode in questo nodo
+    for (const pattern of shortcodePatterns) {
+      pattern.lastIndex = 0
+      if (pattern.test(text)) {
+        hasMatch = true
+        break
+      }
     }
-    window.scrollTo(0, scrollPosition)
-  }, 50)
+
+    if (hasMatch) {
+      await replaceShortcodesInTextNode(editor, textNode, doc)
+    }
+  }
+}
+
+/* Sostituisce gli shortcode in un singolo nodo di testo con preview spans */
+async function replaceShortcodesInTextNode (editor, textNode, doc) {
+  const text = textNode.textContent
+
+  // Pattern combinato per trovare tutti gli shortcode
+  const combinedPattern = /(\[(distico|spoiler|faq)(?:\s+[^\]]+)?\][\s\S]*?\[\/\2\]|\[(button|widgetbay|photo|index|leggianche|trivia|survey|facebook|instagram|twitter|bluesky|reddit|youtube|tiktok|spotify)(?:\s+[^\]]+)?\])/g
+
+  const matches = [...text.matchAll(combinedPattern)]
+  if (matches.length === 0) return
+
+  // Crea un fragment per contenere i nuovi nodi
+  const fragment = doc.createDocumentFragment()
+  let lastIndex = 0
+
+  for (const match of matches) {
+    const shortcode = match[0]
+    const matchIndex = match.index
+
+    // Aggiungi il testo prima dello shortcode
+    if (matchIndex > lastIndex) {
+      fragment.appendChild(doc.createTextNode(text.substring(lastIndex, matchIndex)))
+    }
+
+    // Crea la preview span per questo shortcode
+    const previewHtml = await generatePreviewHtml(shortcode)
+    const shortcodeName = getShortcodeName(shortcode)
+
+    const span = doc.createElement('span')
+    span.setAttribute('contenteditable', 'false')
+    span.setAttribute('data-preview-shortcode-name', shortcodeName)
+    span.setAttribute('data-preview-shortcode', escapeHtml(shortcode))
+    span.innerHTML = previewHtml
+
+    fragment.appendChild(span)
+    lastIndex = matchIndex + shortcode.length
+  }
+
+  // Aggiungi il testo rimanente dopo l'ultimo shortcode
+  if (lastIndex < text.length) {
+    fragment.appendChild(doc.createTextNode(text.substring(lastIndex)))
+  }
+
+  // Sostituisci il nodo di testo originale con il fragment
+  textNode.parentNode.replaceChild(fragment, textNode)
+}
+
+/* Estrae il nome dello shortcode dal tag */
+function getShortcodeName (shortcode) {
+  const match = shortcode.match(/^\[(\w+)/)
+  return match ? match[1] : 'unknown'
+}
+
+/* Genera l'HTML di preview per uno shortcode */
+async function generatePreviewHtml (shortcode) {
+  const name = getShortcodeName(shortcode)
+
+  // Mappa dei parser per ogni tipo di shortcode
+  const parsers = {
+    button: () => parseButtonSingle(shortcode),
+    widgetbay: () => parseWidgetbaySingle(shortcode),
+    distico: () => parseDisticoSingle(shortcode),
+    spoiler: () => parseSpoilerSingle(shortcode),
+    faq: () => parseFaqSingle(shortcode),
+    photo: () => parsePhotoSingle(shortcode),
+    index: () => parsePlaceholderSingle(shortcode, { tag: 'index', color: '#ffa500', icon: '📑', label: 'Index', attrName: null }),
+    leggianche: () => parsePlaceholderSingle(shortcode, { tag: 'leggianche', color: '#00a0ff', icon: '📰', label: 'Leggi anche', attrName: 'id' }),
+    trivia: () => parsePlaceholderSingle(shortcode, { tag: 'trivia', color: '#c912eb', icon: '🎮', label: 'Trivia ID', attrName: 'id' }),
+    survey: () => parsePlaceholderSingle(shortcode, { tag: 'survey', color: '#4bc444', icon: '❓', label: 'Survey ID', attrName: 'id' }),
+    facebook: () => parseSocialSingle(shortcode, 'facebook'),
+    instagram: () => parseSocialSingle(shortcode, 'instagram'),
+    twitter: () => parseSocialSingle(shortcode, 'twitter'),
+    bluesky: () => parseSocialSingle(shortcode, 'bluesky'),
+    reddit: () => parseSocialSingle(shortcode, 'reddit'),
+    youtube: () => parseSocialSingle(shortcode, 'youtube'),
+    tiktok: () => parseSocialSingle(shortcode, 'tiktok'),
+    spotify: () => parseSocialSingle(shortcode, 'spotify')
+  }
+
+  if (parsers[name]) {
+    return await parsers[name]()
+  }
+
+  // Fallback per shortcode sconosciuti
+  return `<small class="shortcode-preview" style="display:inline-block; padding: 5px 10px; background: #eee; border-radius: 4px;">[${name}]</small>`
+}
+
+/* Aggiunge overlay ADV in posizione assoluta senza modificare il contenuto */
+async function addAdvOverlays (editor, body, doc) {
+  const content = editor.getContent()
+
+  try {
+    const response = await fetch('/ads-post-parser/get-preview-html', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ raw_html: content })
+    })
+
+    if (!response.ok) return
+
+    let transformedContent = await response.json()
+
+    // Rimuovi wrapper se presente
+    transformedContent = transformedContent.replace(/<div id="adv__parsed__content">/g, '')
+    transformedContent = transformedContent.replace(/<\/div>$/g, '')
+
+    // Parsa il contenuto trasformato per trovare DOVE sono i marker ADV
+    const parser = new DOMParser()
+    const transformedDoc = parser.parseFromString('<div>' + transformedContent + '</div>', 'text/html')
+
+    // Trova tutti i marker [ADV PREVIEW] e determina dopo quale paragrafo sono
+    const advMarkers = transformedDoc.querySelectorAll('small')
+    const paragraphsInTransformed = transformedDoc.querySelectorAll('p')
+    const paragraphsInEditor = body.querySelectorAll('p')
+
+    advMarkers.forEach(marker => {
+      if (marker.textContent === '[ADV PREVIEW]') {
+        // Trova l'indice del paragrafo PRIMA di questo marker
+        const prevElement = marker.previousElementSibling
+        if (prevElement && prevElement.tagName === 'P') {
+          // Trova l'indice di questo paragrafo
+          const paragraphIndex = Array.from(paragraphsInTransformed).indexOf(prevElement)
+
+          if (paragraphIndex >= 0 && paragraphIndex < paragraphsInEditor.length) {
+            // Crea e inserisci l'overlay dopo il paragrafo corrispondente nell'editor
+            const overlay = doc.createElement('div')
+            overlay.className = 'adv-preview-overlay'
+            overlay.setAttribute('contenteditable', 'false')
+            overlay.style.cssText = 'display:block;background:#f0f0f0;font-size:10px;text-align:center;padding:4px 0;margin:8px 0;pointer-events:none;user-select:none;border:1px dashed #ccc;'
+            overlay.textContent = 'Pubblicità'
+
+            const targetParagraph = paragraphsInEditor[paragraphIndex]
+            targetParagraph.parentNode.insertBefore(overlay, targetParagraph.nextSibling)
+          }
+        }
+      }
+    })
+  } catch (error) {
+    console.warn('addAdvOverlays failed:', error)
+  }
 }
 
 /* Function for hiding preview and restoring shortcodes */
@@ -236,194 +478,25 @@ function hidePreview (editor) {
   editor.setContent(content, { format: 'raw' })
 }
 
-/* Helper function to ensure shortcodes are in their own paragraphs */
-function ensureShortcodesInParagraphs (content) {
-  // Skip per contenuti molto grandi per evitare problemi di performance regex
-  if (content.length > 100000) return content
-
-  const parser = new DOMParser()
-  const doc = parser.parseFromString(content, 'text/html')
-
-  // Pattern per identificare gli shortcode (sia nella forma originale che come span preview)
-  const shortcodePattern = /(\[[\w-]+(?:\s+[^\]]+)?\](?:.*?\[\/[\w-]+\])?|<span[^>]*data-preview-shortcode[^>]*>.*?<\/span>)/gs
-
-  // Trova tutti i paragrafi
-  const paragraphs = Array.from(doc.body.querySelectorAll('p'))
-  const paragraphsToRemove = new Set()
-
-  paragraphs.forEach(p => {
-    const html = p.innerHTML
-    const matches = [...html.matchAll(shortcodePattern)]
-
-    if (matches.length > 0) {
-      // Verifica se il paragrafo contiene testo oltre allo shortcode
-      let tempHtml = html
-      matches.forEach(match => {
-        tempHtml = tempHtml.replace(match[0], '')
-      })
-
-      // Rimuovi &nbsp; e trim, ma mantieni gli spazi normali
-      const textContent = tempHtml.replace(/&nbsp;/g, '').replace(/<[^>]*>/g, '').trim()
-
-      // Se c'è del testo oltre allo shortcode, separa lo shortcode
-      if (textContent.length > 0) {
-        let newHtml = html
-
-        // Estrai ogni shortcode e mettilo in un proprio paragrafo
-        matches.forEach(match => {
-          const shortcode = match[0]
-          newHtml = newHtml.replace(shortcode, `</p><p>${shortcode}</p><p>`)
-        })
-
-        // Sostituisci il contenuto del paragrafo
-        const tempDiv = document.createElement('div')
-        tempDiv.innerHTML = newHtml
-
-        // Inserisci i nuovi elementi prima del paragrafo originale
-        while (tempDiv.firstChild) {
-          p.parentNode.insertBefore(tempDiv.firstChild, p)
-        }
-
-        // Marca il paragrafo originale per la rimozione
-        paragraphsToRemove.add(p)
-      }
-    }
-  })
-
-  // Rimuovi i paragrafi marcati
-  paragraphsToRemove.forEach(p => p.remove())
-
-  // Pulisci solo i paragrafi completamente vuoti (senza contenuto o solo &nbsp;)
-  const allParagraphs = doc.body.querySelectorAll('p')
-  allParagraphs.forEach(p => {
-    const c = p.innerHTML.trim()
-    // Rimuovi solo se completamente vuoto o solo &nbsp;
-    if (c === '' || c === '&nbsp;' || c === '<br>') {
-      p.remove()
-    }
-  })
-
-  return doc.body.innerHTML
-}
-
-// ===== ADV PREVIEW OPTIMIZATION ===== //
-
-let advPreviewController = null
-let advPreviewCache = { content: null, response: null }
-const ADV_PREVIEW_TIMEOUT_MS = 5000
-
-function hashContent (str) {
-  let hash = 5381
-  for (let i = 0; i < str.length; i++) {
-    hash = ((hash << 5) + hash + str.charCodeAt(i)) | 0
-  }
-  return hash
-}
-
-async function parseAdvPreview (content) {
-  const contentHash = hashContent(content)
-
-  if (advPreviewCache.content === contentHash) {
-    return advPreviewCache.response
-  }
-
-  if (advPreviewController) {
-    advPreviewController.abort()
-  }
-  advPreviewController = new AbortController()
-  const { signal } = advPreviewController
-  const timeoutId = setTimeout(() => advPreviewController.abort(), ADV_PREVIEW_TIMEOUT_MS)
-
-  try {
-    const response = await fetch('/ads-post-parser/get-preview-html', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ raw_html: content }),
-      signal
-    })
-
-    clearTimeout(timeoutId)
-
-    if (!response.ok) {
-      console.warn('parseAdvPreview: server returned', response.status)
-      return content
-    }
-
-    let data = await response.json()
-
-    // remove <div id="adv__parsed__content">
-    data = data.replace(/<div id="adv__parsed__content">/g, '')
-    data = data.replace(/<\/div>$/g, '')
-
-    // replace <small>[ADV PREVIEW]</small> with <div class="adv-preview">
-    data = data.replace(/<small>\[ADV PREVIEW\]<\/small>/g, '<div class="adv-preview" contenteditable="false" draggable="false" style="display:block;background: #f0f0f0;font-size: 10px;text-align: center;padding: 0px 0; margin: 0px 0;pointer-events: none;user-select: none;">Pubblicit\u00e0</div>')
-
-    advPreviewCache = { content: contentHash, response: data }
-
-    return data
-  } catch (error) {
-    clearTimeout(timeoutId)
-    if (error.name === 'AbortError') {
-      return content
-    }
-    console.warn('parseAdvPreview failed, returning original content:', error)
-    return content
-  }
-}
+// ===== ADV PREVIEW CLEANUP ===== //
 
 function removeAdvPreview (content) {
-  // Rimuovi i div .adv-preview
+  // Rimuovi i div .adv-preview (vecchio formato)
   content = content.replace(/<div[^>]*class="adv-preview"[^>]*>.*?<\/div>/g, '')
+  // Rimuovi i div .adv-preview-overlay (nuovo formato)
+  content = content.replace(/<div[^>]*class="adv-preview-overlay"[^>]*>.*?<\/div>/g, '')
   // Rimuovi anche i paragrafi vuoti che potrebbero rimanere
   content = content.replace(/<p[^>]*>(?:&nbsp;|\s|<br\s*\/?>)*<\/p>/g, '')
   return content
 }
 
-/* Convert from shortcodes to preview spans */
-async function parseFromShortcodesToPreview (content) {
-  content = parseButton(content)
-  content = parseWidgetbay(content)
-  content = parseDistico(content)
-  content = parseSpoiler(content)
-  content = parseFaq(content)
-  content = parseIndex(content)
-  content = parseReadMore(content)
-
-  content = await parsePhoto(content)
-
-  // === GAME === //
-  content = parseTrivia(content)
-  content = parseSurvey(content)
-
-  // === SOCIALS === //
-  content = parseFacebook(content)
-  content = parseInstagram(content)
-  content = parseTwitter(content)
-  content = parseBlueSky(content)
-  content = parseReddit(content)
-  content = parseYoutube(content)
-  content = parseTiktok(content)
-  content = parseSpotify(content)
-
-  return content
-}
-
 /* Convert from preview spans to shortcodes */
 function parseFromPreviewToShortcodes (content) {
-  content = content.replace(/<span[^>]*data-preview-shortcode="([^"]+)"[^>]*>.*?<\/span>/g, function (_match, p1) {
-    return p1
+  content = content.replace(/<span[^>]*data-preview-shortcode="([^"]*)"[^>]*>.*?<\/span>/g, function (_match, p1) {
+    return decodeHtmlEntities(p1)
   })
 
   return content
-}
-
-/* Function to create preview element container (span with data-preview-shortcode) */
-function createPreviewElement (shortcodeName, shortcode, previewHtml) {
-  return `<span contenteditable="false" data-preview-shortcode-name="${shortcodeName}" data-preview-shortcode="${shortcode}" style="">
-        ${previewHtml}
-    </span>`
 }
 
 // ===== PLATFORM DATA ===== //
@@ -462,231 +535,6 @@ const SOCIAL_PLATFORMS = {
     svg: '<path d="M320 72C183 72 72 183 72 320C72 457 183 568 320 568C457 568 568 457 568 320C568 183 457 72 320 72zM420.7 436.9C416.5 436.9 413.9 435.6 410 433.3C347.6 395.7 275 394.1 203.3 408.8C199.4 409.8 194.3 411.4 191.4 411.4C181.7 411.4 175.6 403.7 175.6 395.6C175.6 385.3 181.7 380.4 189.2 378.8C271.1 360.7 354.8 362.3 426.2 405C432.3 408.9 435.9 412.4 435.9 421.5C435.9 430.6 428.8 436.9 420.7 436.9zM447.6 371.3C442.4 371.3 438.9 369 435.3 367.1C372.8 330.1 279.6 315.2 196.7 337.7C191.9 339 189.3 340.3 184.8 340.3C174.1 340.3 165.4 331.6 165.4 320.9C165.4 310.2 170.6 303.1 180.9 300.2C208.7 292.4 237.1 286.6 278.7 286.6C343.6 286.6 406.3 302.7 455.7 332.1C463.8 336.9 467 343.1 467 351.8C466.9 362.6 458.5 371.3 447.6 371.3zM478.6 295.1C473.4 295.1 470.2 293.8 465.7 291.2C394.5 248.7 267.2 238.5 184.8 261.5C181.2 262.5 176.7 264.1 171.9 264.1C158.7 264.1 148.6 253.8 148.6 240.5C148.6 226.9 157 219.2 166 216.6C201.2 206.3 240.6 201.4 283.5 201.4C356.5 201.4 433 216.6 488.9 249.2C496.7 253.7 501.8 259.9 501.8 271.8C501.8 285.4 490.8 295.1 478.6 295.1z"/>'
   }
 }
-
-// ===== PARSER FACTORIES ===== //
-
-function createSocialParser (name) {
-  const platform = SOCIAL_PLATFORMS[name]
-  const regex = new RegExp('\\[' + name + '(?:\\s+[^\\]]+)?\\]', 'g')
-
-  return function (content) {
-    return content.replace(regex, function (match) {
-      const url = getShortcodeAttr(match, 'url', 'N/A')
-
-      const html = `<small class="shortcode-preview" style="display:inline-block; border-radius: 10px; border: 2px dashed ${platform.color}; font-size: 14px; width: 100%;">
-                <small style="display: block; text-align: center; font-weight: 500; color: #969696; padding: 50px 10px;">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" style="width: 30px; fill: ${platform.color};">${platform.svg}</svg>
-                    <br /> ${url}</small></small>`
-
-      return createPreviewElement(name, match, html)
-    })
-  }
-}
-
-function createPlaceholderParser (config) {
-  const regex = new RegExp('\\[' + config.tag + '(?:\\s+[^\\]]+)?\\]', 'g')
-
-  return function (content) {
-    return content.replace(regex, function (match) {
-      let displayText = config.label
-      if (config.attrName) {
-        displayText += ': ' + getShortcodeAttr(match, config.attrName, 'N/A')
-      }
-
-      const html = `<small class="shortcode-preview" style="display:inline-block; border-radius: 10px; border: 2px dashed ${config.color}; font-size: 14px; width: 100%;">
-                <small style="display: block; text-align: center; font-weight: 500; color: #969696; padding: 50px 10px;">
-                    ${config.icon} <br /> ${displayText}</small></small>`
-
-      return createPreviewElement(config.tag, match, html)
-    })
-  }
-}
-
-// ===== GENERATED PARSERS ===== //
-
-// Social platforms
-const parseFacebook = createSocialParser('facebook')
-const parseInstagram = createSocialParser('instagram')
-const parseTwitter = createSocialParser('twitter')
-const parseBlueSky = createSocialParser('bluesky')
-const parseReddit = createSocialParser('reddit')
-const parseYoutube = createSocialParser('youtube')
-const parseTiktok = createSocialParser('tiktok')
-const parseSpotify = createSocialParser('spotify')
-
-// Placeholder shortcodes
-const parseIndex = createPlaceholderParser({
-  tag: 'index', color: '#ffa500', icon: '\uD83D\uDCD1', label: 'Index', attrName: null
-})
-const parseReadMore = createPlaceholderParser({
-  tag: 'leggianche', color: '#00a0ff', icon: '\uD83D\uDCF0', label: 'Leggi anche', attrName: 'id'
-})
-const parseTrivia = createPlaceholderParser({
-  tag: 'trivia', color: '#c912eb', icon: '\uD83C\uDFAE', label: 'Trivia ID', attrName: 'id'
-})
-const parseSurvey = createPlaceholderParser({
-  tag: 'survey', color: '#4bc444', icon: '\u2753', label: 'Survey ID', attrName: 'id'
-})
-
-// ===== CUSTOM PARSERS ===== //
-
-function parseButton (content) {
-  const buttonRegex = /\[button(?:\s+[^\]]+)?\]/g
-
-  content = content.replace(buttonRegex, function (match) {
-    const label = getShortcodeAttr(match, 'label', 'Button')
-    const level = getShortcodeAttr(match, 'level', 'primary')
-
-    const levelStyle = level === 'primary'
-      ? 'background-color: #0ea5e9; color: white;'
-      : 'background-color: #9f9f9f; color: white;'
-
-    const html = `<small class="shortcode-preview" style="display:inline-block; padding: 10px 20px; border-radius: 10px; text-align: center; text-decoration:none; font-size: 14px; ${levelStyle}">${label}</small>`
-
-    return createPreviewElement('button', match, html)
-  })
-
-  return content
-}
-
-function parseWidgetbay (content) {
-  const widgetbayRegex = /\[widgetbay(?:\s+[^\]]+)?\]/g
-
-  content = content.replace(widgetbayRegex, function (match) {
-    const id = getShortcodeAttr(match, 'id')
-    const link = getShortcodeAttr(match, 'link')
-
-    const html = `<small class="shortcode-preview" style="display:inline-block; border-radius: 10px; border: 2px dashed #14b8a6; font-size: 14px; width: 100%;">
-            <small style="display: block; text-align: center; font-weight: 500; color: #969696; padding: 50px 10px;">
-                \uD83D\uDED2 Widgetbox
-                <br /> ${id ? 'ID: ' + id : link}
-            </small>
-        </small>`
-
-    return createPreviewElement('widgetbay', match, html)
-  })
-
-  return content
-}
-
-async function parsePhoto (content) {
-  const photoRegex = /\[photo(?:\s+[^\]]+)?\]/g
-  const matches = [...content.matchAll(photoRegex)]
-
-  for (const match of matches) {
-    const photoShortcode = match[0]
-
-    const attrs = getShortcodeAttrs(photoShortcode, {
-      id: null,
-      didascalia: null,
-      link: null,
-      align: null,
-      effect: null,
-      shape: null,
-      'max-width': null,
-      zoom: null
-    })
-
-    const id = attrs.id
-    const caption = attrs.didascalia
-    const link = attrs.link
-    const align = attrs.align
-    const effect = attrs.effect
-    const shape = attrs.shape
-    const maxWidth = attrs['max-width']
-    const zoomEnabled = attrs.zoom === null || attrs.zoom !== 'false'
-
-    if (!id) {
-      content = content.replace(photoShortcode, createPreviewElement('photo', photoShortcode,
-        '<small class="shortcode-preview" style="display:inline-block; border-radius: 10px; border: 2px dashed #979797; font-size: 14px; width: 100%;"><small style="display: block; text-align: center; font-weight: 500; color: #969696; padding: 50px 10px;">Photo: Missing ID</small></small>'))
-      continue
-    }
-
-    const ids = id.split(',').map(i => i.trim())
-
-    // Carica tutti gli URL delle immagini in parallelo
-    const imageUrls = await Promise.all(ids.map(i => getMediaHubImagesbyId(i)))
-
-    const totalFloatOptions = [align, effect, maxWidth, zoomEnabled].filter(Boolean).length
-
-    const html = `<small class="shortcode-preview" style="display: flex; flex-direction: column; position: relative; border-radius: ${shape === 'rounded' ? '30px' : '0px'}; border: 1px solid #979797; width: 100%; text-align: center; overflow: hidden;">
-
-            <small style="position: absolute; top: 0; right :0; display: grid; text-align: left; padding: 6px 10px; font-size: 0.7rem; background: #eeeeee;
-                border-bottom-left-radius: 8px; grid-template-columns: repeat(${totalFloatOptions > 1 ? 2 : 1}, minmax(0, 1fr)); gap: 2px 5px;">
-                    ${align ? `<small><strong>Alignment:</strong> ${align}</small>` : ''}
-                    ${effect ? `<small><strong>Effect:</strong> ${effect}</small>` : ''}
-                    ${maxWidth ? `<small><strong>Max Width:</strong> ${maxWidth}px</small>` : ''}
-                    <small><strong>Zoom:</strong> ${zoomEnabled ? 'YES' : 'NO'}</small>
-            </small>
-
-            <small style="display: grid; grid-template-columns: repeat(${imageUrls.length > 3 ? 4 : imageUrls.length}, minmax(0, 1fr));">
-                ${imageUrls.map((url, index) => `<img src="${url}" alt="MediaHub Image ${ids[index]}" style="width: 100%; aspect-ratio: ${imageUrls.length > 1 ? '1 / 1' : 'auto'}; object-fit: cover;" />`).join('')}
-            </small>
-
-            <small style="${caption || link ? 'padding: 5px 0; background: #eeeeee;' : ''}">
-                ${caption ? caption + '<br />' : ''}
-                ${link || ''}
-            </small>
-        </small> `
-
-    content = content.replace(photoShortcode, createPreviewElement('photo', photoShortcode, html))
-  }
-
-  return content
-}
-
-function parseDistico (content) {
-  const disticoRegex = /\[distico(?:\s+[^\]]+)?\](.*?)\[\/distico\]/gs
-
-  content = content.replace(disticoRegex, function (match) {
-    const text = match.match(/\[distico(?:\s+[^\]]+)?\](.*?)\[\/distico\]/s)
-    const disticoText = text ? decodeHtmlEntities(text[1].trim()) : ''
-
-    const html = `<small class="shortcode-preview" style="display:inline-block; border-radius: 8px; border: 1px solid #7e7e7e; font-size: 14px; color: #1c1c1c; font-style: italic; padding: 10px; font-size: 14px; width: calc(100% - 20px);">${disticoText}</small>`
-
-    return createPreviewElement('distico', match, html)
-  })
-
-  return content
-}
-
-function parseSpoiler (content) {
-  const spoilerRegex = /\[spoiler(?:\s+[^\]]+)?\](.*?)\[\/spoiler\]/gs
-
-  content = content.replace(spoilerRegex, function (match) {
-    const text = match.match(/\[spoiler(?:\s+[^\]]+)?\](.*?)\[\/spoiler\]/s)
-    const spoilerText = text ? decodeHtmlEntities(text[1].trim()) : ''
-
-    const html = `<small class="shortcode-preview" style="display:inline-block; border-radius: 8px; border: 1px solid #ffd07a; font-size: 14px; padding: 10px; width: calc(100% - 20px);">\uD83D\uDC41\uFE0F <br /> ${spoilerText}</small>`
-
-    return createPreviewElement('spoiler', match, html)
-  })
-
-  return content
-}
-
-function parseFaq (content) {
-  const faqRegex = /\[faq(?:\s+[^\]]+)?\](.*?)\[\/faq\]/gs
-
-  content = content.replace(faqRegex, function (match) {
-    const title = getShortcodeAttr(match, 'title', '')
-    const textMatch = match.match(/\[faq(?:\s+[^\]]+)?\](.*?)\[\/faq\]/s)
-    const text = textMatch ? decodeHtmlEntities(textMatch[1].trim()) : ''
-
-    const html = `<small class="shortcode-preview" style="display:inline-block; border-radius: 8px; border: 1px solid #ff4e4e; font-size: 14px; color: #1c1c1c; font-style: italic; padding: 10px; position: relative; width: calc(100% - 20px);">
-        \u2753
-        <br />
-        <strong>${title}</strong>
-        <br />
-        ${text}
-        </small>`
-
-    return createPreviewElement('faq', match, html)
-  })
-
-  return content
-}
-
 // ===== API HELPERS ===== //
 
 async function getMediaHubImagesbyId (id) {
@@ -712,4 +560,125 @@ async function getMediaHubImagesbyId (id) {
     console.error('Error fetching MediaHub image data:', error)
     return ''
   }
+}
+
+// ===== SINGLE-ITEM PARSERS (for DOM-based preview) ===== //
+
+function parseSocialSingle (shortcode, platformName) {
+  const platform = SOCIAL_PLATFORMS[platformName]
+  const url = getShortcodeAttr(shortcode, 'url', 'N/A')
+
+  return `<small class="shortcode-preview" style="display:inline-block; border-radius: 10px; border: 2px dashed ${platform.color}; font-size: 14px; width: 100%; max-width: 600px;">
+    <small style="display: block; text-align: center; font-weight: 500; color: #969696; padding: 50px 10px;">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" style="width: 30px; fill: ${platform.color};">${platform.svg}</svg>
+      <br /> ${escapeHtml(url)}</small></small>`
+}
+
+function parsePlaceholderSingle (shortcode, config) {
+  let displayText = config.label
+  if (config.attrName) {
+    displayText += ': ' + getShortcodeAttr(shortcode, config.attrName, 'N/A')
+  }
+
+  return `<small class="shortcode-preview" style="display:inline-block; border-radius: 10px; border: 2px dashed ${config.color}; font-size: 14px; width: 100%; max-width: 600px;">
+    <small style="display: block; text-align: center; font-weight: 500; color: #969696; padding: 50px 10px;">
+      ${config.icon} <br /> ${escapeHtml(displayText)}</small></small>`
+}
+
+function parseButtonSingle (shortcode) {
+  const label = getShortcodeAttr(shortcode, 'label', 'Button')
+  const level = getShortcodeAttr(shortcode, 'level', 'primary')
+
+  const levelStyle = level === 'primary'
+    ? 'background-color: #0ea5e9; color: white;'
+    : 'background-color: #9f9f9f; color: white;'
+
+  return `<small class="shortcode-preview" style="display:inline-block; padding: 10px 20px; border-radius: 10px; text-align: center; text-decoration:none; font-size: 14px; ${levelStyle}">${escapeHtml(label)}</small>`
+}
+
+function parseWidgetbaySingle (shortcode) {
+  const id = getShortcodeAttr(shortcode, 'id')
+  const link = getShortcodeAttr(shortcode, 'link')
+
+  return `<small class="shortcode-preview" style="display:inline-block; border-radius: 10px; border: 2px dashed #14b8a6; font-size: 14px; width: 100%; max-width: 600px;">
+    <small style="display: block; text-align: center; font-weight: 500; color: #969696; padding: 50px 10px;">
+      🛒 Widgetbox
+      <br /> ${id ? 'ID: ' + escapeHtml(id) : escapeHtml(link || '')}
+    </small>
+  </small>`
+}
+
+function parseDisticoSingle (shortcode) {
+  const textMatch = shortcode.match(/\[distico(?:\s+[^\]]+)?\](.*?)\[\/distico\]/s)
+  const disticoText = textMatch ? decodeHtmlEntities(textMatch[1].trim()) : ''
+
+  return `<small class="shortcode-preview" style="display:inline-block; border-radius: 8px; border: 1px solid #7e7e7e; font-size: 14px; color: #1c1c1c; font-style: italic; padding: 10px; width: calc(100% - 20px); max-width: 600px;">${escapeHtml(disticoText)}</small>`
+}
+
+function parseSpoilerSingle (shortcode) {
+  const textMatch = shortcode.match(/\[spoiler(?:\s+[^\]]+)?\](.*?)\[\/spoiler\]/s)
+  const spoilerText = textMatch ? decodeHtmlEntities(textMatch[1].trim()) : ''
+
+  return `<small class="shortcode-preview" style="display:inline-block; border-radius: 8px; border: 1px solid #ffd07a; font-size: 14px; padding: 10px; width: calc(100% - 20px); max-width: 600px;">👁️ <br /> ${escapeHtml(spoilerText)}</small>`
+}
+
+function parseFaqSingle (shortcode) {
+  const title = getShortcodeAttr(shortcode, 'title', '')
+  const textMatch = shortcode.match(/\[faq(?:\s+[^\]]+)?\](.*?)\[\/faq\]/s)
+  const text = textMatch ? decodeHtmlEntities(textMatch[1].trim()) : ''
+
+  return `<small class="shortcode-preview" style="display:inline-block; border-radius: 8px; border: 1px solid #ff4e4e; font-size: 14px; color: #1c1c1c; font-style: italic; padding: 10px; position: relative; width: calc(100% - 20px); max-width: 600px;">
+    ❓
+    <br />
+    <strong>${escapeHtml(title)}</strong>
+    <br />
+    ${escapeHtml(text)}
+  </small>`
+}
+
+async function parsePhotoSingle (shortcode) {
+  const attrs = getShortcodeAttrs(shortcode, {
+    id: null,
+    didascalia: null,
+    link: null,
+    align: null,
+    effect: null,
+    shape: null,
+    'max-width': null,
+    zoom: null
+  })
+
+  const id = attrs.id
+  const caption = attrs.didascalia
+  const link = attrs.link
+  const align = attrs.align
+  const effect = attrs.effect
+  const shape = attrs.shape
+  const maxWidth = attrs['max-width']
+  const zoomEnabled = attrs.zoom === null || attrs.zoom !== 'false'
+
+  if (!id) {
+    return '<small class="shortcode-preview" style="display:inline-block; border-radius: 10px; border: 2px dashed #979797; font-size: 14px; width: 100%; max-width: 600px;"><small style="display: block; text-align: center; font-weight: 500; color: #969696; padding: 50px 10px;">Photo: Missing ID</small></small>'
+  }
+
+  const ids = id.split(',').map(i => i.trim())
+  const imageUrls = await Promise.all(ids.map(i => getMediaHubImagesbyId(i)))
+  const totalFloatOptions = [align, effect, maxWidth, zoomEnabled].filter(Boolean).length
+
+  return `<small class="shortcode-preview" style="display: flex; flex-direction: column; position: relative; border-radius: ${shape === 'rounded' ? '30px' : '0px'}; border: 1px solid #979797; width: 100%; max-width: 600px; text-align: center; overflow: hidden;">
+    <small style="position: absolute; top: 0; right :0; display: grid; text-align: left; padding: 6px 10px; font-size: 0.7rem; background: #eeeeee;
+      border-bottom-left-radius: 8px; grid-template-columns: repeat(${totalFloatOptions > 1 ? 2 : 1}, minmax(0, 1fr)); gap: 2px 5px;">
+      ${align ? `<small><strong>Alignment:</strong> ${escapeHtml(align)}</small>` : ''}
+      ${effect ? `<small><strong>Effect:</strong> ${escapeHtml(effect)}</small>` : ''}
+      ${maxWidth ? `<small><strong>Max Width:</strong> ${escapeHtml(maxWidth)}px</small>` : ''}
+      <small><strong>Zoom:</strong> ${zoomEnabled ? 'YES' : 'NO'}</small>
+    </small>
+    <small style="display: grid; grid-template-columns: repeat(${imageUrls.length > 3 ? 4 : imageUrls.length}, minmax(0, 1fr));">
+      ${imageUrls.map((url, index) => `<img src="${escapeHtml(url)}" alt="MediaHub Image ${escapeHtml(ids[index])}" style="width: 100%; aspect-ratio: ${imageUrls.length > 1 ? '1 / 1' : 'auto'}; object-fit: cover;" />`).join('')}
+    </small>
+    <small style="${caption || link ? 'padding: 5px 0; background: #eeeeee;' : ''}">
+      ${caption ? escapeHtml(caption) + '<br />' : ''}
+      ${link ? escapeHtml(link) : ''}
+    </small>
+  </small>`
 }
