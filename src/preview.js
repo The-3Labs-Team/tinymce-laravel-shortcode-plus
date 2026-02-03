@@ -415,6 +415,9 @@ async function generatePreviewHtml (shortcode) {
 
 /* Aggiunge overlay ADV in posizione assoluta senza modificare il contenuto */
 async function addAdvOverlays (editor, body, doc) {
+  // TEMPORARILY DISABLED - remove this return to re-enable ADV overlays
+  return
+
   const content = editor.getContent()
 
   try {
