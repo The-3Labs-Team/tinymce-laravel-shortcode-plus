@@ -1,7 +1,7 @@
 /* global tinymce */
 
 // Variabile globale per tracciare gli ID delle foto selezionate
-let photo_ids = []
+let photoIds = []
 
 tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
   const content = `
@@ -192,11 +192,11 @@ tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
   `
 
   const openDialog = function (selectedShortcode) {
-    // Reset photo_ids all'apertura del dialog
-    photo_ids = []
+    // Reset photoIds all'apertura del dialog
+    photoIds = []
 
     const photoRegex = /^\[photo(?:\s+[^\]]+)?\]$/
-    let initialData = {
+    const initialData = {
       ids: null,
       caption: null,
       link: null,
@@ -232,7 +232,7 @@ tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
 
     tinymce.activeEditor.windowManager.open({
       title: 'MediaHub Photo',
-      initialData: initialData,
+      initialData,
       body: {
         type: 'panel',
         items: [
@@ -251,7 +251,6 @@ tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
     // Fill initial data
     fillPhotoInitialData(initialData)
   }
-
 
   editor.ui.registry.addButton('mediahubPhoto', {
     icon: 'mediahubPhoto',
@@ -278,8 +277,7 @@ tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
 })
 
 // === FUNCTIONS === //
-async function lastImage(editor) {
-
+async function lastImage (editor) {
   const container = document.querySelector('#card-container')
 
   const results = await fetch('/nova-vendor/media-hub/media', {
@@ -309,7 +307,7 @@ async function lastImage(editor) {
   initDragAndDrop()
 }
 
-function searchImages(query) {
+function searchImages (query) {
   const formQuery = document.querySelector('.tox-dialog__content-js form#query')
   const container = document.querySelector('#card-container')
 
@@ -333,7 +331,7 @@ function searchImages(query) {
   })
 }
 
-function getCollections() {
+function getCollections () {
   const collections = fetch('/nova-vendor/media-hub/collections', {
     method: 'GET',
     headers: {
@@ -355,14 +353,14 @@ function getCollections() {
 }
 
 // Print cards in the container
-function printCards(cards, container, range = 3) {
+function printCards (cards, container, range = 3) {
   // Reset container and add upload card
   container.innerHTML = getFileUploadCard()
 
   // Print cards on DOM
   if (cards.length > 0) {
     cards.forEach((card, index) => {
-      const isSelected = photo_ids.includes(card.id)
+      const isSelected = photoIds.includes(card.id)
       const activeClass = isSelected ? 'active' : ''
       const borderColor = isSelected ? '#4f46e5' : '#e5e7eb'
       const boxShadow = isSelected ? '0 4px 10px rgba(79, 70, 229, 0.3)' : '0 2px 5px rgba(0,0,0,0.1)'
@@ -388,7 +386,7 @@ function printCards(cards, container, range = 3) {
 }
 
 // Insert shortcode into editor
-function insertShortcode(editor) {
+function insertShortcode (editor) {
   const form = document.querySelector('.tox-dialog__content-js form#data')
 
   form.addEventListener('submit', function (e) {
@@ -404,18 +402,18 @@ function insertShortcode(editor) {
     const maxWidth = formData.get('max-width') ? `max-width="${formData.get('max-width')}"` : ''
     const effect = formData.get('effect') ? `effect="${formData.get('effect')}"` : ''
     const shape = formData.get('shape') ? `shape="${formData.get('shape')}"` : ''
-    const zoom = formData.get('disable_zoom') && formData.get('disable_zoom') === 'true' ? `zoom="false"` : ''
+    const zoom = formData.get('disable_zoom') && formData.get('disable_zoom') === 'true' ? 'zoom="false"' : ''
 
     let result = `[photo id="${ids}" ${caption} ${link} ${forceLinkFb} ${align} ${maxWidth} ${effect} ${shape} ${zoom}]`
     result = result.replace(/ +]$/, ']')
     editor.insertContent(result)
-    editor.execCommand('showPreview');
+    editor.execCommand('showPreview')
     tinymce.activeEditor.windowManager.close()
   })
 }
 
 // Search data in Nova with fetch API
-function searchInNova(keyword) {
+function searchInNova (keyword) {
   // Fetch results from Nova API Global Search
   const results =
 
@@ -441,27 +439,28 @@ function searchInNova(keyword) {
 }
 
 // Get the ids of the selected images
-function getIds() {
-  return photo_ids.join(',')
+function getIds () {
+  return photoIds.join(',')
 }
 
 // Toggle photo selection
-function togglePhotoSelection(id) {
-  const index = photo_ids.indexOf(id)
+// eslint-disable-next-line no-unused-vars
+function togglePhotoSelection (id) {
+  const index = photoIds.indexOf(id)
   const card = document.querySelector(`.photo-card[data-id="${id}"]`)
 
   if (index > -1) {
     // Rimuovi ID dall'array
-    photo_ids.splice(index, 1)
+    photoIds.splice(index, 1)
     deselectCard(card)
   } else {
     // Aggiungi ID all'array
-    photo_ids.push(id)
+    photoIds.push(id)
     selectCard(card)
   }
 }
 
-function sliderDimensions(value) {
+function sliderDimensions (value) {
   // Get Range Value
   const rangeValue = document.querySelector('#slider-dimensions-value')
   rangeValue.innerHTML = value
@@ -492,24 +491,24 @@ function sliderDimensions(value) {
   })
 }
 
-function selectCard(card) {
+function selectCard (card) {
   card.classList.add('active')
-  card.style.borderColor = '#4f46e5';
-  card.style.transform = 'translateY(0)';
-  card.style.boxShadow = '0 4px 10px rgba(79, 70, 229, 0.3)';
+  card.style.borderColor = '#4f46e5'
+  card.style.transform = 'translateY(0)'
+  card.style.boxShadow = '0 4px 10px rgba(79, 70, 229, 0.3)'
 }
 
-function deselectCard(card) {
+function deselectCard (card) {
   card.classList.remove('active')
-  card.style.borderColor = '#e5e7eb';
-  card.style.transform = 'translateY(0)';
-  card.style.boxShadow = '0 2px 5px rgba(0,0,0,0.1)';
+  card.style.borderColor = '#e5e7eb'
+  card.style.transform = 'translateY(0)'
+  card.style.boxShadow = '0 2px 5px rgba(0,0,0,0.1)'
 }
 
 // === FILE UPLOAD === //
 
 // Get html of the upload card
-function getFileUploadCard() {
+function getFileUploadCard () {
   return `
     <div id="upload-section" style="position: relative; display: flex; flex-direction: column; cursor: pointer; background-color: #ffffff; border-radius: 8px; overflow: hidden; transition: all 0.2s ease; height: 100%; border: 2px dashed #d1d5db; margin: 2px; justify-content: center; align-items: center; padding: 20px; text-align: center; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);">
       <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 200px;">
@@ -539,7 +538,7 @@ function getFileUploadCard() {
 }
 
 // Observe file input changes and update UI
-function initUploadSection() {
+function initUploadSection () {
   const fileInput = document.querySelector('#file-input')
 
   fileInput.addEventListener('change', function () {
@@ -549,7 +548,7 @@ function initUploadSection() {
 }
 
 // Load collections and populate the select
-async function loadCollections() {
+async function loadCollections () {
   try {
     const collections = await getCollections()
     const selectContainer = document.querySelector('#collection-select-container')
@@ -561,8 +560,8 @@ async function loadCollections() {
 
       // Add collections to select
       collections.forEach(collection => {
-        //if not empty
-        if (!collection || collection.trim() === '') return;
+        // if not empty
+        if (!collection || collection.trim() === '') return
         const option = document.createElement('option')
         option.value = collection
         option.textContent = collection
@@ -582,7 +581,7 @@ async function loadCollections() {
 }
 
 // Update upload button and status text based on file count
-function updateUploadUI(fileCount) {
+function updateUploadUI (fileCount) {
   const uploadSection = document.querySelector('#upload-section')
   const statusText = document.querySelector('#upload-status-text')
   const mainBtn = document.querySelector('#main-upload-btn')
@@ -632,7 +631,7 @@ function updateUploadUI(fileCount) {
 }
 
 // Generate stacked image previews
-function generateImagePreviews(files, iconElement) {
+function generateImagePreviews (files, iconElement) {
   // Hide the original icon
   if (iconElement) {
     iconElement.style.display = 'none'
@@ -721,8 +720,9 @@ function generateImagePreviews(files, iconElement) {
   }
 }
 
-// Handle upload button click 
-async function handleUploadButtonClick() {
+// Handle upload button click
+// eslint-disable-next-line no-unused-vars
+async function handleUploadButtonClick () {
   const fileInput = document.querySelector('#file-input')
   const files = fileInput.files
 
@@ -758,15 +758,14 @@ async function handleUploadButtonClick() {
     // Seleziona automaticamente le immagini caricate
     const container = document.querySelector('#card-container')
     mediaList.forEach(media => {
-      if (!photo_ids.includes(media.id)) {
-        photo_ids.push(media.id)
+      if (!photoIds.includes(media.id)) {
+        photoIds.push(media.id)
         const card = container.querySelector(`.photo-card[data-id="${media.id}"]`)
         if (card) {
           selectCard(card)
         }
       }
     })
-
   } catch (error) {
     console.error('Errore durante il caricamento:', error)
   }
@@ -776,7 +775,7 @@ async function handleUploadButtonClick() {
 }
 
 // Initialize drag and drop functionality
-function initDragAndDrop() {
+function initDragAndDrop () {
   const dropZone = document.querySelector('#drop-zone')
   const cardContainer = document.querySelector('#drop-zone').parentElement // Now targets the outer container
   const fileInput = document.querySelector('#file-input')
@@ -786,9 +785,9 @@ function initDragAndDrop() {
 
     // Prevent default drag behaviors on the entire container
     ;['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-      cardContainer.addEventListener(eventName, preventDefaults, false)
-      document.body.addEventListener(eventName, preventDefaults, false)
-    })
+    cardContainer.addEventListener(eventName, preventDefaults, false)
+    document.body.addEventListener(eventName, preventDefaults, false)
+  })
 
   // Highlight drop area when item is dragged over it
   cardContainer.addEventListener('dragenter', function (e) {
@@ -839,29 +838,29 @@ function initDragAndDrop() {
     }
   }, false)
 
-  function preventDefaults(e) {
+  function preventDefaults (e) {
     e.preventDefault()
     e.stopPropagation()
   }
 
-  function highlight(e) {
+  function highlight (e) {
     // Only show drop zone if dragged items contain files
     if (e.dataTransfer.types.includes('Files')) {
       dropZone.style.display = 'flex'
     }
   }
 
-  function unhighlight(e) {
+  function unhighlight (e) {
     dragCounter = 0
     dropZone.style.display = 'none'
   }
 
-  function scrollToTop() {
+  function scrollToTop () {
     const cardZone = document.querySelector('#card-imgs-zone')
     cardZone.scroll(0, 0)
   }
 
-  function handleDrop(e) {
+  function handleDrop (e) {
     const dt = e.dataTransfer
     const files = dt.files
     scrollToTop()
@@ -889,7 +888,7 @@ function initDragAndDrop() {
 }
 
 // Upload files to MediaHub using Fetch API
-async function uploadToMediaHub(files) {
+async function uploadToMediaHub (files) {
   const formData = new FormData()
 
   // Add all files with the 'files' parameter name (as array)
@@ -923,7 +922,7 @@ async function uploadToMediaHub(files) {
 
   const headers = {
     'X-Requested-With': 'XMLHttpRequest',
-    'Accept': 'application/json'
+    Accept: 'application/json'
   }
 
   if (csrfToken) {
@@ -933,7 +932,7 @@ async function uploadToMediaHub(files) {
   const response = await fetch('/nova-vendor/media-hub/media/save', {
     method: 'POST',
     body: formData,
-    headers: headers
+    headers
   })
 
   if (!response.ok) {
@@ -944,7 +943,7 @@ async function uploadToMediaHub(files) {
   return result
 }
 
-function fillPhotoInitialData(initialData) {
+function fillPhotoInitialData (initialData) {
   const captionField = document.querySelector('input[name="caption"]')
   const linkField = document.querySelector('input[name="link"]')
   const forceLinkFbField = document.querySelector('input[name="forcelinkfb"]')
@@ -967,12 +966,12 @@ function fillPhotoInitialData(initialData) {
   if (initialData.ids) {
     const ids = initialData.ids.split(',')
 
-    // Popola l'array photo_ids
-    photo_ids = ids.map(id => parseInt(id.trim())).filter(id => !isNaN(id))
+    // Popola l'array photoIds
+    photoIds = ids.map(id => parseInt(id.trim())).filter(id => !isNaN(id))
 
     // Usa setTimeout per assicurarti che il DOM sia completamente aggiornato
     setTimeout(() => {
-      photo_ids.forEach(id => {
+      photoIds.forEach(id => {
         const card = document.querySelector(`.photo-card[data-id="${id}"]`)
         if (card) {
           selectCard(card)

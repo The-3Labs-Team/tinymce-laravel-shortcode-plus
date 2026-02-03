@@ -2,9 +2,9 @@
 
 tinymce.PluginManager.add('distico', function (editor, url) {
   const openDialog = function (selectedShortcode) {
-    const disticoRegex = /\[distico(?:\s+[^\]]+)?\](.*?)\[\/distico\]/gs;
-    let initialData = {
-      distico: '',
+    const disticoRegex = /\[distico(?:\s+[^\]]+)?\](.*?)\[\/distico\]/gs
+    const initialData = {
+      distico: ''
     }
 
     if (selectedShortcode && disticoRegex.test(selectedShortcode)) {
@@ -14,7 +14,7 @@ tinymce.PluginManager.add('distico', function (editor, url) {
 
     return editor.windowManager.open({
       title: 'Distico',
-      initialData: initialData,
+      initialData,
       body: {
         type: 'panel',
         items: [
@@ -40,12 +40,11 @@ tinymce.PluginManager.add('distico', function (editor, url) {
         const data = api.getData()
         /* Insert content when the window form is submitted */
         editor.insertContent('[distico]' + data.distico + '[/distico]')
-        editor.execCommand('showPreview');
+        editor.execCommand('showPreview')
         api.close()
       }
     })
   }
-
 
   editor.addCommand('mceEditShortcode_distico', function (args) {
     openDialog(args.selectedShortcode)

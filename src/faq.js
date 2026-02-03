@@ -2,10 +2,10 @@
 
 tinymce.PluginManager.add('faq', function (editor, url) {
   const openDialog = function (selectedShortcode) {
-    const faqRegex = /\[faq(?:\s+[^\]]+)?\](.*?)\[\/faq\]/gs;
-    let initialData = {
+    const faqRegex = /\[faq(?:\s+[^\]]+)?\](.*?)\[\/faq\]/gs
+    const initialData = {
       title: '',
-      content: '',
+      content: ''
     }
 
     if (selectedShortcode && faqRegex.test(selectedShortcode)) {
@@ -18,7 +18,7 @@ tinymce.PluginManager.add('faq', function (editor, url) {
 
     return editor.windowManager.open({
       title: 'Faq',
-      initialData: initialData,
+      initialData,
       body: {
         type: 'panel',
         items: [
@@ -26,12 +26,12 @@ tinymce.PluginManager.add('faq', function (editor, url) {
             type: 'input',
             inputMode: 'text',
             name: 'title',
-            label: 'Add Title',
+            label: 'Add Title'
           },
           {
             type: 'textarea',
             name: 'content',
-            label: 'Add Content',
+            label: 'Add Content'
           }
         ]
       },
@@ -50,7 +50,7 @@ tinymce.PluginManager.add('faq', function (editor, url) {
         const data = api.getData()
         /* Insert content when the window form is submitted */
         editor.insertContent('[faq title="' + data.title + '"]' + data.content + '[/faq]')
-        editor.execCommand('showPreview');
+        editor.execCommand('showPreview')
         api.close()
       }
     })

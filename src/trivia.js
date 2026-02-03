@@ -47,11 +47,11 @@ tinymce.PluginManager.add('trivia', function (editor, url) {
 `
 
   const openDialog = function (selectedShortcode) {
-    const selectedId = selectedShortcode ? selectedShortcode.match(/id=["']([^"']*)["']/)[1] : null;
+    const selectedId = selectedShortcode ? selectedShortcode.match(/id=["']([^"']*)["']/)[1] : null
 
     tinymce.activeEditor.windowManager.open({
       title: 'Trivia',
-      selectedId: selectedId,
+      selectedId,
       body: {
         type: 'panel',
         items: [
@@ -99,12 +99,12 @@ tinymce.PluginManager.add('trivia', function (editor, url) {
 
 // === FUNCTIONS === //
 
-async function lastTrivia(selectedId = null) {
+async function lastTrivia (selectedId = null) {
   const lastTrivia = await getTrivia()
   printTrivia(lastTrivia, selectedId)
 }
 
-async function getTrivia(query = '') {
+async function getTrivia (query = '') {
   try {
     const prefix = '/nova-vendor/the-3labs-team/nova-trivia-package'
     let url = `${prefix}/search`
@@ -116,21 +116,21 @@ async function getTrivia(query = '') {
       headers: {
         'Content-Type': 'application/json'
       }
-    });
+    })
 
     if (!response.ok) {
-      throw new Error('Error in Nova API Request');
+      throw new Error('Error in Nova API Request')
     }
 
-    const lastTrivia = await response.json();
-    return lastTrivia.data;
+    const lastTrivia = await response.json()
+    return lastTrivia.data
   } catch (error) {
-    console.error(error);
-    return { success: false, data: error.message };
+    console.error(error)
+    return { success: false, data: error.message }
   }
 }
 
-function printTrivia(trivias, selectedId = null) {
+function printTrivia (trivias, selectedId = null) {
   const lastTriviaContainer = document.querySelector('#last-trivia-container')
 
   // Reset container
@@ -142,7 +142,7 @@ function printTrivia(trivias, selectedId = null) {
         <tr style="border-bottom: 1px solid #ababab; cursor: pointer; position: relative" >
             <input type="checkbox" name="trivia" id="trivia-${trivia.id}" value="${trivia.id}" class="checkboxes" style="display: none;"
             onclick="document.querySelector('.tox-dialog__content-js form#trivia-data').dispatchEvent(new Event('submit'))">
-            <td style="padding: 10px;  ${selectedId == trivia.id ? 'border: 1px solid #0ea5e9; background-color: #d9f1fc;' : ''}">
+            <td style="padding: 10px;  ${selectedId === String(trivia.id) ? 'border: 1px solid #0ea5e9; background-color: #d9f1fc;' : ''}">
                 <label for="trivia-${trivia.id}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></label>
                 ${trivia.topic} ${selectedId}
             </td>
@@ -154,7 +154,7 @@ function printTrivia(trivias, selectedId = null) {
   }
 }
 
-function searchTrivia(selectedId = null) {
+function searchTrivia (selectedId = null) {
   const formQuery = document.querySelector('.tox-dialog__content-js form#queryTrivia')
   const container = document.querySelector('#last-trivia-container')
 
@@ -171,10 +171,9 @@ function searchTrivia(selectedId = null) {
 
     printTrivia(trivia, selectedId)
   })
-
 }
 
-function insetDataTrivia(editor) {
+function insetDataTrivia (editor) {
   const formTrivia = document.querySelector('.tox-dialog__content-js form#trivia-data')
 
   formTrivia.addEventListener('submit', function (e) {
@@ -185,7 +184,7 @@ function insetDataTrivia(editor) {
 
     const result = `[trivia id="${id}"]`
     editor.insertContent(result)
-    editor.execCommand('showPreview');
+    editor.execCommand('showPreview')
     tinymce.activeEditor.windowManager.close()
   })
 }

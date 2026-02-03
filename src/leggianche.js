@@ -3,8 +3,8 @@
 tinymce.PluginManager.add('leggianche', function (editor, url) {
   const openDialog = function (selectedShortcode) {
     const buttonRegex = /^\[leggianche(?:\s+[^\]]+)?\]$/
-    let initialData = {
-      id: null,
+    const initialData = {
+      id: null
     }
 
     if (selectedShortcode && buttonRegex.test(selectedShortcode)) {
@@ -15,7 +15,7 @@ tinymce.PluginManager.add('leggianche', function (editor, url) {
     return editor.windowManager.open(
       {
         title: 'Leggi Anche',
-        initialData: initialData,
+        initialData,
         body: {
           type: 'panel',
           items: [
@@ -60,7 +60,6 @@ tinymce.PluginManager.add('leggianche', function (editor, url) {
     )
   }
 
-
   const resultsPage = (results) => {
     return {
       title: 'Leggi Anche',
@@ -96,7 +95,7 @@ tinymce.PluginManager.add('leggianche', function (editor, url) {
     }
   }
 
-  function searchInNova(keyword, type) {
+  function searchInNova (keyword, type) {
     // Fetch results from Nova API Global Search
     const results =
 

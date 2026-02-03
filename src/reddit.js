@@ -3,8 +3,8 @@
 tinymce.PluginManager.add('reddit', function (editor, url) {
   const openDialog = function (selectedShortcode) {
     const buttonRegex = /^\[reddit(?:\s+[^\]]+)?\]$/
-    let initialData = {
-      url: '',
+    const initialData = {
+      url: ''
     }
 
     if (selectedShortcode && buttonRegex.test(selectedShortcode)) {
@@ -14,7 +14,7 @@ tinymce.PluginManager.add('reddit', function (editor, url) {
 
     return editor.windowManager.open({
       title: 'Reddit',
-      initialData: initialData,
+      initialData,
       body: {
         type: 'panel',
         items: [
@@ -42,7 +42,7 @@ tinymce.PluginManager.add('reddit', function (editor, url) {
         const data = api.getData()
         /* Insert content when the window form is submitted */
         editor.insertContent('[reddit url="' + data.url + '"]')
-        editor.execCommand('showPreview');
+        editor.execCommand('showPreview')
         api.close()
       }
     })
