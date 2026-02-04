@@ -61,7 +61,7 @@ tinymce.PluginManager.add('preview', function (editor, url) {
           : node.nextSibling
 
         if (adjacentNode && adjacentNode.classList &&
-            (adjacentNode.classList.contains('adv-preview') || adjacentNode.classList.contains('adv-preview-overlay'))) {
+          (adjacentNode.classList.contains('adv-preview') || adjacentNode.classList.contains('adv-preview-overlay'))) {
           e.preventDefault()
           adjacentNode.remove()
         }
@@ -197,14 +197,14 @@ tinymce.PluginManager.add('preview', function (editor, url) {
 
 // ===== UTILITY FUNCTIONS ===== //
 
-function decodeHtmlEntities (str) {
+function decodeHtmlEntities(str) {
   if (str == null) return ''
   const textarea = document.createElement('textarea')
   textarea.innerHTML = String(str)
   return textarea.value
 }
 
-function escapeHtml (str) {
+function escapeHtml(str) {
   if (str == null) return ''
   return String(str)
     .replace(/&/g, '&amp;')
@@ -214,13 +214,13 @@ function escapeHtml (str) {
     .replace(/'/g, '&#039;')
 }
 
-function getShortcodeAttr (shortcode, attrName, defaultValue) {
+function getShortcodeAttr(shortcode, attrName, defaultValue) {
   if (defaultValue === undefined) defaultValue = null
   const match = shortcode.match(new RegExp(attrName + '=["\']([^"\']*)["\']'))
   return match ? decodeHtmlEntities(match[1]) : defaultValue
 }
 
-function getShortcodeAttrs (shortcode, attrDefaults) {
+function getShortcodeAttrs(shortcode, attrDefaults) {
   const result = {}
   const regex = /([\w-]+)=["']([^"']*?)["']/g
   let m
@@ -236,7 +236,7 @@ function getShortcodeAttrs (shortcode, attrDefaults) {
 // ===== CORE PREVIEW FUNCTIONS ===== //
 
 /* Function for showing preview by DOM manipulation (no content replacement) */
-async function showPreview (editor, fromDrop) {
+async function showPreview(editor, fromDrop) {
   if (fromDrop === undefined) fromDrop = false
 
   const body = editor.getBody()
@@ -253,7 +253,7 @@ async function showPreview (editor, fromDrop) {
 }
 
 /* Aggiorna le ADV solo se il numero di paragrafi e' cambiato */
-async function updateAdvOverlaysIfNeeded (editor) {
+async function updateAdvOverlaysIfNeeded(editor) {
   const body = editor.getBody()
   const currentCount = body.querySelectorAll('p').length
 
@@ -272,7 +272,7 @@ async function updateAdvOverlaysIfNeeded (editor) {
 }
 
 /* Rimuove le preview esistenti per permettere il refresh */
-function removeExistingPreviews (body) {
+function removeExistingPreviews(body) {
   // Rimuovi preview shortcode spans
   const previewSpans = body.querySelectorAll('[data-preview-shortcode]')
   previewSpans.forEach(span => {
@@ -287,7 +287,7 @@ function removeExistingPreviews (body) {
 }
 
 /* Trova shortcode nei nodi di testo e li wrappa con preview spans */
-async function wrapShortcodesWithPreview (editor, body, doc) {
+async function wrapShortcodesWithPreview(editor, body, doc) {
   // Pattern per tutti gli shortcode supportati
   const shortcodePatterns = [
     // Shortcode con contenuto (opening + content + closing)
@@ -302,7 +302,7 @@ async function wrapShortcodesWithPreview (editor, body, doc) {
   while (walker.nextNode()) {
     // Skip nodi già dentro preview spans o elementi non editabili
     if (!walker.currentNode.parentElement.closest('[data-preview-shortcode]') &&
-        !walker.currentNode.parentElement.closest('[contenteditable="false"]')) {
+      !walker.currentNode.parentElement.closest('[contenteditable="false"]')) {
       textNodes.push(walker.currentNode)
     }
   }
@@ -328,7 +328,7 @@ async function wrapShortcodesWithPreview (editor, body, doc) {
 }
 
 /* Sostituisce gli shortcode in un singolo nodo di testo con preview spans */
-async function replaceShortcodesInTextNode (editor, textNode, doc) {
+async function replaceShortcodesInTextNode(editor, textNode, doc) {
   const text = textNode.textContent
 
   // Pattern combinato per trovare tutti gli shortcode
@@ -374,13 +374,13 @@ async function replaceShortcodesInTextNode (editor, textNode, doc) {
 }
 
 /* Estrae il nome dello shortcode dal tag */
-function getShortcodeName (shortcode) {
+function getShortcodeName(shortcode) {
   const match = shortcode.match(/^\[(\w+)/)
   return match ? match[1] : 'unknown'
 }
 
 /* Genera l'HTML di preview per uno shortcode */
-async function generatePreviewHtml (shortcode) {
+async function generatePreviewHtml(shortcode) {
   const name = getShortcodeName(shortcode)
 
   // Mappa dei parser per ogni tipo di shortcode
@@ -414,7 +414,7 @@ async function generatePreviewHtml (shortcode) {
 }
 
 /* Aggiunge overlay ADV in posizione assoluta senza modificare il contenuto */
-async function addAdvOverlays (editor, body, doc) {
+async function addAdvOverlays(editor, body, doc) {
   // TEMPORARILY DISABLED - remove this return to re-enable ADV overlays
   return
 
@@ -472,7 +472,7 @@ async function addAdvOverlays (editor, body, doc) {
 }
 
 /* Function for hiding preview and restoring shortcodes */
-function hidePreview (editor) {
+function hidePreview(editor) {
   let content = editor.getContent()
 
   content = removeAdvPreview(content)
@@ -483,7 +483,7 @@ function hidePreview (editor) {
 
 // ===== ADV PREVIEW CLEANUP ===== //
 
-function removeAdvPreview (content) {
+function removeAdvPreview(content) {
   // Rimuovi i div .adv-preview (vecchio formato)
   content = content.replace(/<div[^>]*class="adv-preview"[^>]*>.*?<\/div>/g, '')
   // Rimuovi i div .adv-preview-overlay (nuovo formato)
@@ -494,7 +494,7 @@ function removeAdvPreview (content) {
 }
 
 /* Convert from preview spans to shortcodes */
-function parseFromPreviewToShortcodes (content) {
+function parseFromPreviewToShortcodes(content) {
   content = content.replace(/<span[^>]*data-preview-shortcode="([^"]*)"[^>]*>.*?<\/span>/g, function (_match, p1) {
     return decodeHtmlEntities(p1)
   })
@@ -540,16 +540,23 @@ const SOCIAL_PLATFORMS = {
 }
 // ===== API HELPERS ===== //
 
-async function getMediaHubImagesbyId (id) {
+async function getMediaHubImagesbyId(id) {
   try {
     const endpoint = '/nova-vendor/media-hub/media/' + encodeURIComponent(id) + '/data'
 
+    const headers = {
+      'Content-Type': 'application/json'
+    }
+
+    // Aggiungi CSRF token solo se presente
+    const csrfMeta = document.querySelector('meta[name="csrf-token"]')
+    if (csrfMeta) {
+      headers['X-CSRF-TOKEN'] = csrfMeta.getAttribute('content')
+    }
+
     const response = await fetch(endpoint, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-      }
+      headers
     })
 
     if (!response.ok) {
@@ -567,7 +574,7 @@ async function getMediaHubImagesbyId (id) {
 
 // ===== SINGLE-ITEM PARSERS (for DOM-based preview) ===== //
 
-function parseSocialSingle (shortcode, platformName) {
+function parseSocialSingle(shortcode, platformName) {
   const platform = SOCIAL_PLATFORMS[platformName]
   const url = getShortcodeAttr(shortcode, 'url', 'N/A')
 
@@ -577,7 +584,7 @@ function parseSocialSingle (shortcode, platformName) {
       <br /> ${escapeHtml(url)}</small></small>`
 }
 
-function parsePlaceholderSingle (shortcode, config) {
+function parsePlaceholderSingle(shortcode, config) {
   let displayText = config.label
   if (config.attrName) {
     displayText += ': ' + getShortcodeAttr(shortcode, config.attrName, 'N/A')
@@ -588,7 +595,7 @@ function parsePlaceholderSingle (shortcode, config) {
       ${config.icon} <br /> ${escapeHtml(displayText)}</small></small>`
 }
 
-function parseButtonSingle (shortcode) {
+function parseButtonSingle(shortcode) {
   const label = getShortcodeAttr(shortcode, 'label', 'Button')
   const level = getShortcodeAttr(shortcode, 'level', 'primary')
 
@@ -599,7 +606,7 @@ function parseButtonSingle (shortcode) {
   return `<small class="shortcode-preview" style="display:inline-block; padding: 10px 20px; border-radius: 10px; text-align: center; text-decoration:none; font-size: 14px; ${levelStyle}">${escapeHtml(label)}</small>`
 }
 
-function parseWidgetbaySingle (shortcode) {
+function parseWidgetbaySingle(shortcode) {
   const id = getShortcodeAttr(shortcode, 'id')
   const link = getShortcodeAttr(shortcode, 'link')
 
@@ -611,21 +618,21 @@ function parseWidgetbaySingle (shortcode) {
   </small>`
 }
 
-function parseDisticoSingle (shortcode) {
+function parseDisticoSingle(shortcode) {
   const textMatch = shortcode.match(/\[distico(?:\s+[^\]]+)?\](.*?)\[\/distico\]/s)
   const disticoText = textMatch ? decodeHtmlEntities(textMatch[1].trim()) : ''
 
   return `<small class="shortcode-preview" style="display:inline-block; border-radius: 8px; border: 1px solid #7e7e7e; font-size: 14px; color: #1c1c1c; font-style: italic; padding: 10px; width: calc(100% - 20px); max-width: 600px;">${escapeHtml(disticoText)}</small>`
 }
 
-function parseSpoilerSingle (shortcode) {
+function parseSpoilerSingle(shortcode) {
   const textMatch = shortcode.match(/\[spoiler(?:\s+[^\]]+)?\](.*?)\[\/spoiler\]/s)
   const spoilerText = textMatch ? decodeHtmlEntities(textMatch[1].trim()) : ''
 
   return `<small class="shortcode-preview" style="display:inline-block; border-radius: 8px; border: 1px solid #ffd07a; font-size: 14px; padding: 10px; width: calc(100% - 20px); max-width: 600px;">👁️ <br /> ${escapeHtml(spoilerText)}</small>`
 }
 
-function parseFaqSingle (shortcode) {
+function parseFaqSingle(shortcode) {
   const title = getShortcodeAttr(shortcode, 'title', '')
   const textMatch = shortcode.match(/\[faq(?:\s+[^\]]+)?\](.*?)\[\/faq\]/s)
   const text = textMatch ? decodeHtmlEntities(textMatch[1].trim()) : ''
@@ -639,7 +646,7 @@ function parseFaqSingle (shortcode) {
   </small>`
 }
 
-async function parsePhotoSingle (shortcode) {
+async function parsePhotoSingle(shortcode) {
   const attrs = getShortcodeAttrs(shortcode, {
     id: null,
     didascalia: null,

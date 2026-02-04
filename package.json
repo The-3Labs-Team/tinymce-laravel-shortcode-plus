@@ -1,6 +1,7 @@
 {
     "scripts": {
         "start": "http-server -p 8080",
+        "startNocache": "http-server -p 8081 -c-1",
         "lint": "npx eslint . --fix"
     },
     "dependencies": {
