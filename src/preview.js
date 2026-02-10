@@ -91,6 +91,9 @@ tinymce.PluginManager.add('preview', function (editor, url) {
     })
 
     observer.observe(body, { childList: true, subtree: true })
+
+    // Inject dark mode styles for shortcode previews
+    injectDarkModeStyles(editor)
   })
 
   /**
@@ -196,6 +199,79 @@ tinymce.PluginManager.add('preview', function (editor, url) {
 })
 
 // ===== UTILITY FUNCTIONS ===== //
+
+function injectDarkModeStyles(editor) {
+  const doc = editor.getDoc()
+  const head = doc.head || doc.getElementsByTagName('head')[0]
+
+  // Check if styles already injected
+  if (doc.getElementById('shortcode-preview-dark-mode-styles')) return
+
+  // Check if parent document has dark mode
+  let isDarkMode = false
+  try {
+    isDarkMode = window.parent.document.documentElement.classList.contains('dark') ||
+      window.top.document.documentElement.classList.contains('dark')
+  } catch (e) {
+    // Cross-origin access might be blocked, fallback to media query
+    isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+  }
+
+  // Add dark class to editor body if needed
+  if (isDarkMode) {
+    doc.body.classList.add('editor-dark-mode')
+  }
+
+  const style = doc.createElement('style')
+  style.id = 'shortcode-preview-dark-mode-styles'
+  style.textContent = `
+    /* Light mode (default) */
+    .shortcode-preview {
+      color: #1c1c1c;
+    }
+
+    .shortcode-preview-photo .float-bg {
+      background-color: #eeeeee;
+    }
+
+    
+    /* Dark mode */
+    body.editor-dark-mode .shortcode-preview {
+      color: #d1d1d1 !important;
+    }
+
+    body.editor-dark-mode .shortcode-preview-photo .float-bg {
+      background-color: #1b212b !important;
+    }
+
+    body.editor-dark-mode .shortcode-preview-twitter {
+      border-color: #ffffff !important;
+    }
+
+    body.editor-dark-mode .shortcode-preview-twitter svg {
+      fill: #ffffff !important;
+    }
+  `
+
+  head.appendChild(style)
+
+  // Watch for dark mode changes in parent document
+  try {
+    const parentDoc = window.parent.document || window.top.document
+    const observer = new MutationObserver(() => {
+      const isDark = parentDoc.documentElement.classList.contains('dark')
+      doc.body.classList.toggle('editor-dark-mode', isDark)
+    })
+
+    observer.observe(parentDoc.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    })
+  } catch (e) {
+    // Cross-origin access blocked, no dynamic updates
+    console.warn('Cannot observe parent document for dark mode changes:', e)
+  }
+}
 
 function decodeHtmlEntities(str) {
   if (str == null) return ''
@@ -578,7 +654,7 @@ function parseSocialSingle(shortcode, platformName) {
   const platform = SOCIAL_PLATFORMS[platformName]
   const url = getShortcodeAttr(shortcode, 'url', 'N/A')
 
-  return `<small class="shortcode-preview" style="display:inline-block; border-radius: 10px; border: 2px dashed ${platform.color}; font-size: 14px; width: 100%; max-width: 600px;">
+  return `<small class="shortcode-preview shortcode-preview-${platformName}" style="display:inline-block; border-radius: 10px; border: 2px dashed ${platform.color}; font-size: 14px; width: 100%; max-width: 600px;">
     <small style="display: block; text-align: center; font-weight: 500; color: #969696; padding: 50px 10px;">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" style="width: 30px; fill: ${platform.color};">${platform.svg}</svg>
       <br /> ${escapeHtml(url)}</small></small>`
@@ -600,10 +676,10 @@ function parseButtonSingle(shortcode) {
   const level = getShortcodeAttr(shortcode, 'level', 'primary')
 
   const levelStyle = level === 'primary'
-    ? 'background-color: #0ea5e9; color: white;'
-    : 'background-color: #9f9f9f; color: white;'
+    ? 'background-color: #0ea5e9;'
+    : 'background-color: #9f9f9f;'
 
-  return `<small class="shortcode-preview" style="display:inline-block; padding: 10px 20px; border-radius: 10px; text-align: center; text-decoration:none; font-size: 14px; ${levelStyle}">${escapeHtml(label)}</small>`
+  return `<small class="shortcode-preview" style="display:inline-block; color: white !important; padding: 10px 20px; border-radius: 10px; text-align: center; text-decoration:none; font-size: 14px; ${levelStyle}">${escapeHtml(label)}</small>`
 }
 
 function parseWidgetbaySingle(shortcode) {
@@ -675,8 +751,8 @@ async function parsePhotoSingle(shortcode) {
   const imageUrls = await Promise.all(ids.map(i => getMediaHubImagesbyId(i)))
   const totalFloatOptions = [align, effect, maxWidth, zoomEnabled].filter(Boolean).length
 
-  return `<small class="shortcode-preview" style="display: flex; flex-direction: column; position: relative; border-radius: ${shape === 'rounded' ? '30px' : '0px'}; border: 1px solid #979797; width: 100%; max-width: 600px; text-align: center; overflow: hidden;">
-    <small style="position: absolute; top: 0; right :0; display: grid; text-align: left; padding: 6px 10px; font-size: 0.7rem; background: #eeeeee;
+  return `<small class="shortcode-preview shortcode-preview-photo" style="display: flex; flex-direction: column; position: relative; border-radius: ${shape === 'rounded' ? '30px' : '0px'}; border: 1px solid #979797; width: 100%; max-width: 600px; text-align: center; overflow: hidden;">
+    <small class="float-bg" style="position: absolute; top: 0; right :0; display: grid; text-align: left; padding: 6px 10px; font-size: 0.7rem;
       border-bottom-left-radius: 8px; grid-template-columns: repeat(${totalFloatOptions > 1 ? 2 : 1}, minmax(0, 1fr)); gap: 2px 5px;">
       ${align ? `<small><strong>Alignment:</strong> ${escapeHtml(align)}</small>` : ''}
       ${effect ? `<small><strong>Effect:</strong> ${escapeHtml(effect)}</small>` : ''}
@@ -686,7 +762,7 @@ async function parsePhotoSingle(shortcode) {
     <small style="display: grid; grid-template-columns: repeat(${imageUrls.length > 3 ? 4 : imageUrls.length}, minmax(0, 1fr));">
       ${imageUrls.map((url, index) => `<img src="${escapeHtml(url)}" alt="MediaHub Image ${escapeHtml(ids[index])}" style="width: 100%; aspect-ratio: ${imageUrls.length > 1 ? '1 / 1' : 'auto'}; object-fit: cover;" />`).join('')}
     </small>
-    <small style="${caption || link ? 'padding: 5px 0; background: #eeeeee;' : ''}">
+    <small class="float-bg" style="${caption || link ? 'padding: 5px 0;' : ''}">
       ${caption ? escapeHtml(caption) + '<br />' : ''}
       ${link ? escapeHtml(link) : ''}
     </small>
