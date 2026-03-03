@@ -78,6 +78,11 @@ tinymce.PluginManager.add('shortcodeList', function (editor, url) {
       description: 'Insert an instagram frame'
     },
     {
+      title: 'LinkedIn',
+      code: '[linkedin url="YOUR_URL_HERE"]',
+      description: 'Insert a LinkedIn frame'
+    },
+    {
       title: 'Distico',
       code: '[distico]Insert Text here[/distico]',
       description: 'Insert a "distico" frame'
