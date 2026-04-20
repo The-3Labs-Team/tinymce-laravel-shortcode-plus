@@ -1,10 +1,84 @@
 /* global tinymce */
 
 tinymce.PluginManager.add('leggianche', function (editor, url) {
+  const createEmptyResultsPage = function (keyword) {
+    return {
+      title: 'Leggi Anche',
+      body: {
+        type: 'panel',
+        items: [
+          {
+            type: 'htmlpanel',
+            html: '<p>Nessun articolo trovato</p>'
+          }
+        ]
+      },
+      buttons: [
+        {
+          type: 'cancel',
+          text: 'Chiudi'
+        },
+        {
+          type: 'custom',
+          name: 'searchAgain',
+          text: 'Cerca di nuovo'
+        }
+      ],
+      onAction: function (api, details) {
+        if (details.name === 'searchAgain') {
+          api.redial(createSearchPage({ keyword: normalizeSearchKeyword(keyword) }))
+        }
+      }
+    }
+  }
+
+  const createSearchPage = function (initialData = {}) {
+    return {
+      title: 'Leggi Anche',
+      initialData,
+      body: {
+        type: 'panel',
+        items: [
+          {
+            type: 'input',
+            name: 'keyword',
+            label: 'Inserisci la tua chiave di ricerca',
+            placeholder: 'Es. Lenovo ThinkPad X9 14 Aura Edition',
+            tooltip: 'Seleziona l\'articolo da leggere',
+            autofocus: true
+          }
+        ]
+      },
+      buttons: [
+        {
+          type: 'cancel',
+          text: 'Chiudi'
+        },
+        {
+          type: 'submit',
+          text: 'Cerca',
+          primary: true
+        }
+      ],
+      onSubmit: function (api) {
+        const data = api.getData()
+
+        searchInNova(data.keyword, ['posts', 'articles']).then(function (results) {
+          if (results.length === 0) {
+            api.redial(createEmptyResultsPage(data.keyword))
+          } else {
+            api.redial(resultsPage(results, data.keyword))
+          }
+        })
+      }
+    }
+  }
+
   const openDialog = function (selectedShortcode) {
     const buttonRegex = /^\[leggianche(?:\s+[^\]]+)?\]$/
     const initialData = {
-      id: null
+      id: null,
+      keyword: ''
     }
 
     if (selectedShortcode && buttonRegex.test(selectedShortcode)) {
@@ -12,55 +86,10 @@ tinymce.PluginManager.add('leggianche', function (editor, url) {
       if (idMatch) initialData.id = idMatch[1]
     }
 
-    return editor.windowManager.open(
-      {
-        title: 'Leggi Anche',
-        initialData,
-        body: {
-          type: 'panel',
-          items: [
-            {
-              type: 'input',
-              name: 'keyword',
-              label: 'Inserisci la tua chiave di ricerca',
-              placeholder: 'Usa almeno 3 caratteri per la ricerca',
-              tooltip: 'Seleziona l\'articolo da leggere',
-              autofocus: true
-            }
-          ]
-        },
-        buttons: [
-          {
-            type: 'cancel',
-            text: 'Close'
-          },
-          {
-            type: 'submit',
-            text: 'Save',
-            primary: true
-          }
-        ],
-
-        // onSubmit: function (api) {
-        //   var data = api.getData();
-        //   /* Insert content when the window form is submitted */
-        //   // editor.insertContent('[leggianche id="'+data.leggianche + '"]');
-        //   api.close();
-        // },
-
-        onSubmit: function (api) {
-          const data = api.getData()
-
-          searchInNova(data.keyword, ['posts', 'articles']).then(function (results) {
-            api.redial(resultsPage(results))
-          })
-        }
-
-      }
-    )
+    return editor.windowManager.open(createSearchPage(initialData))
   }
 
-  const resultsPage = (results) => {
+  const resultsPage = (results, keyword) => {
     return {
       title: 'Leggi Anche',
       body: {
@@ -77,14 +106,20 @@ tinymce.PluginManager.add('leggianche', function (editor, url) {
       buttons: [
         {
           type: 'custom',
+          name: 'searchAgain',
           text: 'Cerca di nuovo'
         },
         {
           type: 'submit',
-          text: 'Insert',
+          text: 'Inserisci',
           primary: true
         }
       ],
+      onAction: function (api, details) {
+        if (details.name === 'searchAgain') {
+          api.redial(createSearchPage({ keyword: normalizeSearchKeyword(keyword) }))
+        }
+      },
       onSubmit: function (api) {
         const data = api.getData()
         /* Insert content when the window form is submitted */
@@ -95,45 +130,82 @@ tinymce.PluginManager.add('leggianche', function (editor, url) {
     }
   }
 
-  function searchInNova (keyword, type) {
-    // Fetch results from Nova API Global Search
-    const results =
-
-      fetch('/nova-api/search?search=' + keyword, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
+  async function fetchNovaResults (keyword, type) {
+    return fetch('/nova-api/search?search=' + encodeURIComponent(keyword), {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+      .then(function (response) {
+        if (response.ok) {
+          return response.json()
+        } else {
+          throw new Error('Error in Nova API Request')
         }
       })
-        .then(function (response) {
-          if (response.ok) {
-            return response.json()
-          } else {
-            throw new Error('Error in Nova API Request')
-          }
-        }
-          // Debug response
-        ).then(function (data) {
-          console.log('Search results ' + data)
-          return data
-        })
+      // Debug response
+      .then(function (data) {
+        console.log('Search results ' + data)
+        return data
+      })
 
-        // Filter results by type
-        .then(function (data) {
-          console.table(data)
-          return data.filter(function (item) {
-            return type.includes(item.resourceName)
-          })
+      // Filter results by type
+      .then(function (data) {
+        console.table(data)
+        return data.filter(function (item) {
+          return type.includes(item.resourceName)
         })
+      })
 
-        // Map results to selectbox items
-        .then(function (data) {
-          return data.map(function (item) {
-            return { text: item.title, value: item.resourceId.toString() }
-          })
+      // Map results to selectbox items
+      .then(function (data) {
+        return data.map(function (item) {
+          return { text: item.title, value: item.resourceId.toString() }
         })
+      })
+  }
 
-    return results
+  function normalizeSearchKeyword (keyword) {
+    if (typeof keyword !== 'string') {
+      return ''
+    }
+
+    return keyword.replace(/\s+/g, ' ').trim()
+  }
+
+  function buildSearchKeywords (keyword) {
+    const normalizedKeyword = normalizeSearchKeyword(keyword)
+
+    if (!normalizedKeyword) {
+      return []
+    }
+
+    const keywords = [normalizedKeyword]
+    const shortenedKeyword = normalizedKeyword
+      .split('|')[0]
+      .split('→')[0]
+      .trim()
+
+    if (shortenedKeyword && shortenedKeyword !== normalizedKeyword) {
+      keywords.push(shortenedKeyword)
+    }
+
+    return keywords
+  }
+
+  async function searchInNova (keyword, type) {
+    const keywords = buildSearchKeywords(keyword)
+
+    for (const searchKeyword of keywords) {
+      const results = await fetchNovaResults(searchKeyword, type)
+
+      if (results.length > 0) {
+        return results
+      }
+    }
+
+    return []
   }
 
   /* Add a leggianche icon */
@@ -146,7 +218,7 @@ tinymce.PluginManager.add('leggianche', function (editor, url) {
   /* Add a button that opens a window */
   editor.ui.registry.addButton('leggianche', {
     icon: 'leggianche',
-    tooltip: 'Add Leggi Anche',
+    tooltip: 'Aggiungi Leggi Anche',
     onAction: function () {
       /* Open window */
       openDialog()
