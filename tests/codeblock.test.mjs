@@ -24,7 +24,28 @@ function serializeNode (node) {
   }
 }
 
-function createHarness (selectedContent = '') {
+function createNode (tagName, options = {}) {
+  return {
+    tagName: tagName.toUpperCase(),
+    nodeName: tagName.toUpperCase(),
+    attrs: options.attrs || {},
+    innerHTML: options.innerHTML || '',
+    children: [],
+    parentNode: null,
+    appendChild (child) {
+      child.parentNode = this
+      this.children.push(child)
+    }
+  }
+}
+
+function createHarness (options = {}) {
+  const harnessOptions = typeof options === 'string'
+    ? { selectedContent: options }
+    : options
+  const selectedContent = harnessOptions.selectedContent || ''
+  const selectedNode = harnessOptions.selectedNode || null
+
   assert.equal(pluginExists, true, 'the codeblock plugin file should exist')
 
   const registeredPlugins = {}
@@ -44,6 +65,9 @@ function createHarness (selectedContent = '') {
   const openedDialogs = []
   const buttons = {}
   const setNodeCalls = []
+  const removeCalls = []
+  const formatChangedCallbacks = []
+  let formatChangedUnbindCalls = 0
   const editor = {
     windowManager: {
       open (config) {
@@ -62,19 +86,41 @@ function createHarness (selectedContent = '') {
       isCollapsed () {
         return selectedContent === ''
       },
+      getNode () {
+        return selectedNode
+      },
       setNode (node) {
         setNodeCalls.push(node)
       }
     },
     dom: {
       create (tagName, attrs = {}, html = '') {
+        return createNode(tagName, { attrs, innerHTML: html })
+      },
+      getParent (node, selector) {
+        const expectedTagName = String(selector).toUpperCase()
+        let currentNode = node ? node.parentNode : null
+
+        while (currentNode) {
+          if (currentNode.tagName === expectedTagName) {
+            return currentNode
+          }
+          currentNode = currentNode.parentNode
+        }
+
+        return null
+      },
+      remove (node, keepChildren) {
+        removeCalls.push({ node, keepChildren })
+        return node
+      }
+    },
+    formatter: {
+      formatChanged (name, callback) {
+        formatChangedCallbacks.push({ name, callback })
         return {
-          tagName: tagName.toUpperCase(),
-          attrs,
-          innerHTML: html,
-          children: [],
-          appendChild (child) {
-            this.children.push(child)
+          unbind () {
+            formatChangedUnbindCalls += 1
           }
         }
       }
@@ -83,6 +129,9 @@ function createHarness (selectedContent = '') {
       registry: {
         addIcon () {},
         addButton (name, config) {
+          buttons[name] = config
+        },
+        addToggleButton (name, config) {
           buttons[name] = config
         },
         addMenuItem () {}
@@ -95,7 +144,12 @@ function createHarness (selectedContent = '') {
   return {
     buttons,
     editor,
+    formatChangedCallbacks,
+    formatChangedUnbindCalls () {
+      return formatChangedUnbindCalls
+    },
     openedDialogs,
+    removeCalls,
     setNodeCalls
   }
 }
@@ -158,10 +212,79 @@ function testSelectedTextBecomesASingleCodeNodeWithBreaks () {
   ])
 }
 
+function testSelectedTextInsideCodeRemovesExistingCodeNode () {
+  const codeNode = createNode('code')
+  const textNode = createNode('span')
+  codeNode.appendChild(textNode)
+  const harness = createHarness({
+    selectedContent: 'composer install',
+    selectedNode: textNode
+  })
+
+  harness.buttons.codeblock.onAction()
+
+  assert.equal(harness.openedDialogs.length, 0)
+  assert.equal(harness.setNodeCalls.length, 0)
+  assert.deepEqual(JSON.parse(JSON.stringify(harness.removeCalls.map(({ node, keepChildren }) => ({
+    tagName: node.tagName,
+    keepChildren
+  })))), [
+    {
+      tagName: 'CODE',
+      keepChildren: true
+    }
+  ])
+  assert.equal(harness.editor.nodeChangedCalls, 1)
+}
+
+function testCursorInsideCodeRemovesExistingCodeNode () {
+  const codeNode = createNode('code')
+  const textNode = createNode('span')
+  codeNode.appendChild(textNode)
+  const harness = createHarness({
+    selectedNode: textNode
+  })
+
+  harness.buttons.codeblock.onAction()
+
+  assert.equal(harness.openedDialogs.length, 0)
+  assert.equal(harness.setNodeCalls.length, 0)
+  assert.deepEqual(JSON.parse(JSON.stringify(harness.removeCalls.map(({ node, keepChildren }) => ({
+    tagName: node.tagName,
+    keepChildren
+  })))), [
+    {
+      tagName: 'CODE',
+      keepChildren: true
+    }
+  ])
+  assert.equal(harness.editor.nodeChangedCalls, 1)
+}
+
+function testToggleButtonTracksCodeFormatState () {
+  const harness = createHarness()
+  const activeStates = []
+  const teardown = harness.buttons.codeblock.onSetup({
+    setActive (state) {
+      activeStates.push(state)
+    }
+  })
+
+  harness.formatChangedCallbacks[0].callback(true)
+  harness.formatChangedCallbacks[0].callback(false)
+  teardown()
+
+  assert.deepEqual(activeStates, [true, false])
+  assert.equal(harness.formatChangedUnbindCalls(), 1)
+}
+
 const tests = [
   ['button opens textarea dialog without selection', testButtonOpensTextareaDialogWithoutSelection],
   ['submit inserts escaped code markup with breaks', testSubmitInsertsEscapedCodeMarkupWithBreaks],
-  ['selected text becomes a single code node with breaks', testSelectedTextBecomesASingleCodeNodeWithBreaks]
+  ['selected text becomes a single code node with breaks', testSelectedTextBecomesASingleCodeNodeWithBreaks],
+  ['selected text inside code removes the existing code node', testSelectedTextInsideCodeRemovesExistingCodeNode],
+  ['cursor inside code removes the existing code node', testCursorInsideCodeRemovesExistingCodeNode],
+  ['toggle button tracks the code format state', testToggleButtonTracksCodeFormatState]
 ]
 
 let failures = 0
