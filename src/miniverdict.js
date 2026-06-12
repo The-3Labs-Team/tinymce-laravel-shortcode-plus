@@ -54,15 +54,14 @@ tinymce.PluginManager.add('miniverdict', function (editor, url) {
     style.id = STYLE_ID
     style.textContent = `
       .tox-dialog .tox-form__grid--2col > .tox-form__group {
-        background: #f4f4f5;
-        border: 1px solid #e4e4e7;
+        background: rgba(128, 128, 128, 0.08);
+        border: 1px solid rgba(128, 128, 128, 0.25);
         border-radius: 10px;
         padding: 12px;
       }
       .tox-dialog .tox-form__grid--2col > .tox-form__group > .tox-label:first-child {
         text-align: center;
         font-weight: 700;
-        color: #333333;
       }
       .tox-dialog .tox-form__grid--2col + .tox-form__group,
       .tox-dialog .tox-form__group--stretched {
