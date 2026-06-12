@@ -53,6 +53,11 @@ tinymce.PluginManager.add('shortcodeList', function (editor, url) {
       description: 'Insert a FAQ'
     },
     {
+      title: 'Miniverdict',
+      code: '[miniverdict product1="Product A" product2="Product B" winner="1|2|1,2"]Quick verdict text[/miniverdict]',
+      description: 'Quick verdict box comparing two products. product1/product2 accept a product ID or a name. winner: 1, 2, or 1,2 for a tie ("Pari merito").'
+    },
+    {
       title: 'Spoiler',
       code: '[spoiler]This is an hidden content[/spoiler]',
       description: 'Insert a spoiler'

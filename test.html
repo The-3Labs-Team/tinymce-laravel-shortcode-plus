@@ -115,12 +115,13 @@
     tinymce.PluginManager.load('button', './src/button.js');
     tinymce.PluginManager.load('spoiler', './src/spoiler.js');
     tinymce.PluginManager.load('faq', './src/faq.js');
+    tinymce.PluginManager.load('miniverdict', './src/miniverdict.js');
 
     tinymce.init({
       selector: '#editor',
       height: 500,
-      plugins: 'preview youtube button spoiler faq',
-      toolbar: 'undo redo | blocks | bold italic | youtube button spoiler faq | preview sourcecode',
+      plugins: 'preview youtube button spoiler faq miniverdict',
+      toolbar: 'undo redo | blocks | bold italic | youtube button spoiler faq miniverdict | preview sourcecode',
       menubar: false,
       content_style: `
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 16px; line-height: 1.6; }

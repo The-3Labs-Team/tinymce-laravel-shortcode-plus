@@ -367,7 +367,7 @@ async function wrapShortcodesWithPreview(editor, body, doc) {
   // Pattern per tutti gli shortcode supportati
   const shortcodePatterns = [
     // Shortcode con contenuto (opening + content + closing)
-    /\[(distico|spoiler|faq)(?:\s+[^\]]+)?\][\s\S]*?\[\/\1\]/g,
+    /\[(distico|spoiler|faq|miniverdict)(?:\s+[^\]]+)?\][\s\S]*?\[\/\1\]/g,
     // Shortcode singoli
     /\[(button|widgetbay|photo|index|leggianche|trivia|survey|facebook|instagram|twitter|bluesky|reddit|youtube|tiktok|spotify|linkedin)(?:\s+[^\]]+)?\]/g
   ]
@@ -408,7 +408,7 @@ async function replaceShortcodesInTextNode(editor, textNode, doc) {
   const text = textNode.textContent
 
   // Pattern combinato per trovare tutti gli shortcode
-  const combinedPattern = /(\[(distico|spoiler|faq)(?:\s+[^\]]+)?\][\s\S]*?\[\/\2\]|\[(button|widgetbay|photo|index|leggianche|trivia|survey|facebook|instagram|twitter|bluesky|reddit|youtube|tiktok|spotify|linkedin)(?:\s+[^\]]+)?\])/g
+  const combinedPattern = /(\[(distico|spoiler|faq|miniverdict)(?:\s+[^\]]+)?\][\s\S]*?\[\/\2\]|\[(button|widgetbay|photo|index|leggianche|trivia|survey|facebook|instagram|twitter|bluesky|reddit|youtube|tiktok|spotify|linkedin)(?:\s+[^\]]+)?\])/g
 
   const matches = [...text.matchAll(combinedPattern)]
   if (matches.length === 0) return
@@ -466,6 +466,7 @@ async function generatePreviewHtml(shortcode) {
     distico: () => parseDisticoSingle(shortcode),
     spoiler: () => parseSpoilerSingle(shortcode),
     faq: () => parseFaqSingle(shortcode),
+    miniverdict: () => parseMiniverdictSingle(shortcode),
     photo: () => parsePhotoSingle(shortcode),
     index: () => parsePlaceholderSingle(shortcode, { tag: 'index', color: '#ffa500', icon: '📑', label: 'Index', attrName: null }),
     leggianche: () => parsePlaceholderSingle(shortcode, { tag: 'leggianche', color: '#00a0ff', icon: '📰', label: 'Leggi anche', attrName: 'id' }),
@@ -724,6 +725,33 @@ function parseFaqSingle(shortcode) {
     <strong>${escapeHtml(title)}</strong>
     <br />
     ${escapeHtml(text)}
+  </small>`
+}
+
+function parseMiniverdictSingle (shortcode) {
+  const product1 = getShortcodeAttr(shortcode, 'product1', 'Prodotto 1')
+  const product2 = getShortcodeAttr(shortcode, 'product2', 'Prodotto 2')
+  const winner = getShortcodeAttr(shortcode, 'winner', '2')
+  const labelWin = getShortcodeAttr(shortcode, 'labelwin', 'Migliore')
+  const labelLose = getShortcodeAttr(shortcode, 'labellose', 'Buona')
+  const title = getShortcodeAttr(shortcode, 'title', 'Verdetto in breve')
+
+  const bodyMatch = shortcode.match(/\[miniverdict(?:\s+[^\]]+)?\]([\s\S]*?)\[\/miniverdict\]/)
+  const verdict = bodyMatch ? decodeHtmlEntities(bodyMatch[1].trim()) : ''
+
+  const isFirstWinner = winner === '1'
+
+  const productBox = function (name, isWinner) {
+    return `<small style="flex: 1; display: block; padding: 10px 8px; border-radius: 8px; text-align: center; border: 1px solid ${isWinner ? '#e11d2a' : '#e5e7eb'}; background: ${isWinner ? '#e11d2a' : '#ffffff'}; color: ${isWinner ? '#ffffff' : '#111827'};">
+      <strong style="display: block; font-size: 14px;">${escapeHtml(name)}</strong>
+      <small style="display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.85;">${escapeHtml(isWinner ? labelWin : labelLose)}</small>
+    </small>`
+  }
+
+  return `<small class="shortcode-preview" style="display: inline-block; border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px; width: calc(100% - 26px); max-width: 600px;">
+    <small style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #9ca3af; font-weight: 700; margin-bottom: 8px;">${escapeHtml(title)}</small>
+    <small style="display: flex; gap: 8px;">${productBox(product1, isFirstWinner)}${productBox(product2, !isFirstWinner)}</small>
+    ${verdict ? `<small style="display: block; margin-top: 8px; font-size: 13px; color: #374151;">${escapeHtml(verdict)}</small>` : ''}
   </small>`
 }
 
