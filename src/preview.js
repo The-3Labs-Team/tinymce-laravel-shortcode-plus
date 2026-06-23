@@ -369,7 +369,7 @@ async function wrapShortcodesWithPreview(editor, body, doc) {
     // Shortcode con contenuto (opening + content + closing)
     /\[(distico|spoiler|faq|miniverdict)(?:\s+[^\]]+)?\][\s\S]*?\[\/\1\]/g,
     // Shortcode singoli
-    /\[(button|widgetbay|photo|index|leggianche|trivia|survey|facebook|instagram|twitter|bluesky|reddit|youtube|tiktok|spotify|linkedin)(?:\s+[^\]]+)?\]/g
+    /\[(button|aioperator_cta|widgetbay|photo|index|leggianche|trivia|survey|facebook|instagram|twitter|bluesky|reddit|youtube|tiktok|spotify|linkedin)(?:\s+[^\]]+)?\]/g
   ]
 
   // Trova tutti i nodi di testo
@@ -408,7 +408,7 @@ async function replaceShortcodesInTextNode(editor, textNode, doc) {
   const text = textNode.textContent
 
   // Pattern combinato per trovare tutti gli shortcode
-  const combinedPattern = /(\[(distico|spoiler|faq|miniverdict)(?:\s+[^\]]+)?\][\s\S]*?\[\/\2\]|\[(button|widgetbay|photo|index|leggianche|trivia|survey|facebook|instagram|twitter|bluesky|reddit|youtube|tiktok|spotify|linkedin)(?:\s+[^\]]+)?\])/g
+  const combinedPattern = /(\[(distico|spoiler|faq|miniverdict)(?:\s+[^\]]+)?\][\s\S]*?\[\/\2\]|\[(button|aioperator_cta|widgetbay|photo|index|leggianche|trivia|survey|facebook|instagram|twitter|bluesky|reddit|youtube|tiktok|spotify|linkedin)(?:\s+[^\]]+)?\])/g
 
   const matches = [...text.matchAll(combinedPattern)]
   if (matches.length === 0) return
@@ -462,6 +462,7 @@ async function generatePreviewHtml(shortcode) {
   // Mappa dei parser per ogni tipo di shortcode
   const parsers = {
     button: () => parseButtonSingle(shortcode),
+    aioperator_cta: () => parseAioperatorCtaSingle(shortcode),
     widgetbay: () => parseWidgetbaySingle(shortcode),
     distico: () => parseDisticoSingle(shortcode),
     spoiler: () => parseSpoilerSingle(shortcode),
@@ -686,6 +687,31 @@ function parseButtonSingle(shortcode) {
     : 'background-color: #9f9f9f;'
 
   return `<small class="shortcode-preview" style="display:inline-block; color: white !important; padding: 10px 20px; border-radius: 10px; text-align: center; text-decoration:none; font-size: 14px; ${levelStyle}">${escapeHtml(label)}</small>`
+}
+
+function parseAioperatorCtaSingle (shortcode) {
+  const attr = function (name, fallback) {
+    const m = shortcode.match(new RegExp(name + '="([^"]*)"'))
+    return m ? decodeHtmlEntities(m[1]) : fallback
+  }
+  // Il testo dentro <strong> viene reso in giallo; il resto e' testo semplice.
+  const renderBold = function (value) {
+    return escapeHtml(value)
+      .replace(/&lt;strong&gt;/g, '<strong style="color:#ffd54f;">')
+      .replace(/&lt;\/strong&gt;/g, '</strong>')
+  }
+
+  const title = attr('title', 'Dagli <strong>agenti AI personalizzati</strong> alla <strong>formazione</strong>.')
+  const subtitle = attr('subtitle', 'C\'è molto che possiamo fare insieme.')
+  const label = attr('label', 'Chiedi informazioni')
+
+  return `<small class="shortcode-preview" style="display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:16px; background:#1d3557; border-left:4px solid #e63946; border-radius:12px; padding:20px; width: calc(100% - 40px); max-width: 600px; color:#f4f1de; font-size:14px;">
+    <span style="flex:1 1 240px; text-align:left;">
+      <strong style="display:block; color:#ffffff; font-size:16px; margin-bottom:4px;">${renderBold(title)}</strong>
+      <span style="color:#d9dfe8;">${renderBold(subtitle)}</span>
+    </span>
+    <span style="display:inline-block; white-space:nowrap; background:#e63946; color:#ffffff; font-weight:700; padding:10px 22px; border-radius:6px;">${escapeHtml(label)}</span>
+  </small>`
 }
 
 function parseWidgetbaySingle(shortcode) {

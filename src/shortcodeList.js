@@ -23,6 +23,11 @@ tinymce.PluginManager.add('shortcodeList', function (editor, url) {
       description: 'Insert a button'
     },
     {
+      title: 'AI Operator CTA',
+      code: '[aioperator_cta title="Dagli &lt;strong&gt;agenti AI&lt;/strong&gt; alla &lt;strong&gt;formazione&lt;/strong&gt;." subtitle="Sottotitolo" link="mailto:formazione@3labs.it" label="Chiedi informazioni"]',
+      description: 'AI Operator CTA: nel titolo il testo dentro <strong> diventa giallo'
+    },
+    {
       title: 'Index',
       code: '[index]',
       description: 'Insert an index to the article'
