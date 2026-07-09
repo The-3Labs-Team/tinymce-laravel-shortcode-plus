@@ -41,7 +41,8 @@
     1. <strong>ENTER test:</strong> Scrivi testo e premi ENTER - il nuovo paragrafo NON deve sparire<br>
     2. <strong>Shortcode preview:</strong> Gli shortcode (youtube, button, spoiler, faq) devono mostrare la preview<br>
     3. <strong>ADV preview:</strong> Dopo ogni 3 paragrafi deve apparire "Pubblicita'"<br>
-    4. <strong>Edit shortcode:</strong> Clicca su una preview per aprire il dialog di modifica
+    4. <strong>Edit shortcode:</strong> Clicca su una preview per aprire il dialog di modifica<br>
+    5. <strong>MediaHub Photo:</strong> Apri il plugin MediaHub Photo e ridimensiona la finestra per testare il layout mobile
   </div>
 
   <div class="editor-container">
@@ -80,6 +81,8 @@
     // Mock the ads-post-parser endpoint
     const originalFetch = window.fetch;
     window.fetch = function(url, options) {
+      const requestUrl = String(url);
+
       if (url === '/ads-post-parser/get-preview-html') {
         const body = JSON.parse(options.body);
         let html = body.raw_html;
@@ -105,6 +108,49 @@
         });
       }
 
+      const mediaHubFixtures = [
+        {
+          id: 101,
+          file_name: 'demo-landscape.jpg',
+          thumbnail_url: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360"%3E%3Crect width="640" height="360" fill="%23dbeafe"/%3E%3Ccircle cx="150" cy="110" r="54" fill="%23facc15"/%3E%3Cpath d="M0 290 160 170 270 255 390 135 640 310v50H0z" fill="%2316a34a"/%3E%3C/svg%3E',
+          url: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360"%3E%3Crect width="640" height="360" fill="%23dbeafe"/%3E%3Ccircle cx="150" cy="110" r="54" fill="%23facc15"/%3E%3Cpath d="M0 290 160 170 270 255 390 135 640 310v50H0z" fill="%2316a34a"/%3E%3C/svg%3E'
+        },
+        {
+          id: 102,
+          file_name: 'demo-portrait.jpg',
+          thumbnail_url: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="360" height="520" viewBox="0 0 360 520"%3E%3Crect width="360" height="520" fill="%23f3e8ff"/%3E%3Cpath d="M0 420 120 250 215 360 300 190 360 280v240H0z" fill="%237c3aed"/%3E%3C/svg%3E',
+          url: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="360" height="520" viewBox="0 0 360 520"%3E%3Crect width="360" height="520" fill="%23f3e8ff"/%3E%3Cpath d="M0 420 120 250 215 360 300 190 360 280v240H0z" fill="%237c3aed"/%3E%3C/svg%3E'
+        }
+      ];
+
+      if (requestUrl.startsWith('/nova-vendor/media-hub/media?page=1&search=')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ data: mediaHubFixtures })
+        });
+      }
+
+      if (requestUrl === '/nova-vendor/media-hub/media') {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ data: mediaHubFixtures })
+        });
+      }
+
+      if (requestUrl === '/nova-vendor/media-hub/collections') {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(['default', 'articles'])
+        });
+      }
+
+      if (requestUrl === '/nova-vendor/media-hub/media/save') {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ media: mediaHubFixtures })
+        });
+      }
+
       // Pass through all other requests
       return originalFetch.apply(this, arguments);
     };
@@ -116,12 +162,13 @@
     tinymce.PluginManager.load('spoiler', './src/spoiler.js');
     tinymce.PluginManager.load('faq', './src/faq.js');
     tinymce.PluginManager.load('miniverdict', './src/miniverdict.js');
+    tinymce.PluginManager.load('mediahubPhoto', './src/mediahubPhoto.js');
 
     tinymce.init({
       selector: '#editor',
       height: 500,
-      plugins: 'preview youtube button spoiler faq miniverdict',
-      toolbar: 'undo redo | blocks | bold italic | youtube button spoiler faq miniverdict | preview sourcecode',
+      plugins: 'preview youtube button spoiler faq miniverdict mediahubPhoto',
+      toolbar: 'undo redo | blocks | bold italic | youtube button spoiler faq miniverdict mediahubPhoto | preview sourcecode',
       menubar: false,
       content_style: `
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 16px; line-height: 1.6; }

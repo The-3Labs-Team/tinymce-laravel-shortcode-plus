@@ -5,10 +5,10 @@ let photoIds = []
 
 tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
   const content = `
-    <section style="display: flex; align-items: center; padding: 15px; background-color: #fdfeff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 15px;">
-        <form method="GET" id="query" style="flex-grow: 1; display: flex;">
-                <input type="text" placeholder="Search images" name="query" style="border: 1px solid #d1d5db; border-radius: 6px; padding: 10px 15px; width: 100%; font-size: 14px; outline: none; transition: all 0.2s; background-color: #ffffff; color: #1f2937; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);">
-                <button type="submit" style="background-color: #4f46e5; color: white; border: none; border-radius: 6px; padding: 10px 20px; margin-left: 10px; cursor: pointer; font-weight: 500; transition: background-color 0.2s; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    <section class="mediahub-photo-toolbar" style="display: flex; align-items: center; padding: 15px; background-color: #fdfeff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 15px;">
+        <form method="GET" id="query" class="mediahub-photo-search-form" style="flex-grow: 1; display: flex;">
+                <input type="text" class="mediahub-photo-search-input" placeholder="Search images" name="query" style="border: 1px solid #d1d5db; border-radius: 6px; padding: 10px 15px; width: 100%; font-size: 14px; outline: none; transition: all 0.2s; background-color: #ffffff; color: #1f2937; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);">
+                <button type="submit" class="mediahub-photo-search-button" style="background-color: #4f46e5; color: white; border: none; border-radius: 6px; padding: 10px 20px; margin-left: 10px; cursor: pointer; font-weight: 500; transition: background-color 0.2s; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="18" height="18" style="margin-right: 5px;">
                     <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
                   </svg>
@@ -17,17 +17,17 @@ tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
         </form>
 
         <!--Slider-->
-        <div style="display: flex; align-items: center; margin-left: 30px; padding-left: 20px; border-left: 1px solid #d1d5db;">
+        <div class="mediahub-photo-grid-control" style="display: flex; align-items: center; margin-left: 30px; padding-left: 20px; border-left: 1px solid #d1d5db;">
             <label for="slider-dimensions" style="margin-right: 10px; font-size: 14px; color: #4b5563;">Grid size:</label>
             <input type="range" name="slider-dimensions" id="slider-dimensions" min="2" max="6" value="3" onchange="sliderDimensions(this.value)" style="accent-color: #4f46e5; width: 100px;">
             <span id="slider-dimensions-value" style="margin-left: 8px; font-weight: 600; color: #4b5563; min-width: 15px; text-align: center;">3</span>
         </div>
     </section>
 
-    <form method="GET" id="data" style="color: #1f2937;">
-        <div style="display: flex; gap: 15px;">
+    <form method="GET" id="data" class="mediahub-photo-form" style="color: #1f2937;">
+        <div class="mediahub-photo-layout" style="display: flex; gap: 15px;">
 
-            <div style="width: 75%; height: 700px; position: relative;">
+            <div class="mediahub-photo-results" style="width: 75%; height: 700px; position: relative;">
                 
                 <label id="drop-zone" style="position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 100; display: none; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; background-color: rgba(96, 168, 240, 0.9); border: 2px dashed #2c21e8; border-radius: 8px; text-align: center; transition: all 0.2s; color: white; font-weight: 600; font-size: 16px;">
                   <svg id="upload-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 64px; height: 64px; margin-bottom: 16px;">
@@ -36,7 +36,7 @@ tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
                   Release here to upload images
                 </label>
                 
-                <div style="width: 100%; height: 100%; background-color: #fdfeff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); overflow: auto; padding: 15px;" id="card-imgs-zone">
+                <div class="mediahub-photo-card-zone" style="width: 100%; height: 100%; background-color: #fdfeff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); overflow: auto; padding: 15px;" id="card-imgs-zone">
                     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; align-items: stretch;" id="card-container">
                         <!--Images-->
                         <p style="padding: 20px; color: #6b7280; font-size: 15px; grid-column: 1 / -1; text-align: center;">Enter a search query to find images</p>
@@ -44,7 +44,7 @@ tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
                 </div>
             </div>
 
-            <div style="width: 25%; height: 700px; background-color: #fdfeff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; flex-direction: column; padding: 15px;">
+            <div class="mediahub-photo-settings" style="width: 25%; height: 700px; background-color: #fdfeff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; flex-direction: column; padding: 15px;">
                 <h3 style="margin: 0 0 20px 0; padding-bottom: 10px; border-bottom: 1px solid #e5e7eb; color: #1f2937; font-size: 16px; text-align: center;">Image Settings</h3>
 
                 <div style="margin-bottom: 15px;">
@@ -129,7 +129,7 @@ tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
   const customStyles = `
     <style>
       .tox-dialog {
-        max-width: 1350px !important;
+        max-width: min(1350px, calc(100vw - 24px)) !important;
       }
       
       .tox-dialog__content-js{
@@ -137,9 +137,10 @@ tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
       }
 
       .tox-dialog__body-content {
-        min-height: 825px !important;
+        min-height: min(825px, calc(100vh - 120px)) !important;
         background-color: #f6f6f6 !important;
         color: #1f2937 !important;
+        box-sizing: border-box !important;
       }
 
       .tox .tox-dialog__body-content svg {
@@ -165,6 +166,31 @@ tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
         padding: 5px;
       }
 
+      .mediahub-photo-toolbar,
+      .mediahub-photo-layout,
+      .mediahub-photo-results,
+      .mediahub-photo-card-zone,
+      .mediahub-photo-settings {
+        box-sizing: border-box;
+      }
+
+      .mediahub-photo-search-input,
+      .mediahub-photo-settings input,
+      .mediahub-photo-settings select {
+        box-sizing: border-box;
+        max-width: 100%;
+      }
+
+      .mediahub-photo-search-button,
+      .mediahub-photo-settings button {
+        min-height: 42px;
+        white-space: nowrap;
+      }
+
+      .mediahub-photo-settings {
+        overflow: auto;
+      }
+
       @keyframes spin {
         from { transform: rotate(0deg); }
         to { transform: rotate(360deg); }
@@ -187,6 +213,102 @@ tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
       .upload-section-has-files {
         border: 2px solid #10b981 !important; 
         box-shadow: 0 0 10px rgb(16 185 129) !important;
+      }
+
+      @media (max-width: 767px) {
+        .tox-dialog {
+          width: calc(100vw - 16px) !important;
+          max-width: calc(100vw - 16px) !important;
+          max-height: calc(100vh - 16px) !important;
+        }
+
+        .tox-dialog__content-js {
+          max-height: calc(100vh - 92px) !important;
+        }
+
+        .tox-dialog__body-content {
+          min-height: 0 !important;
+          max-height: calc(100vh - 96px) !important;
+          padding: 12px !important;
+        }
+
+        .mediahub-photo-toolbar {
+          flex-direction: column !important;
+          align-items: stretch !important;
+          gap: 12px !important;
+          padding: 12px !important;
+        }
+
+        .mediahub-photo-search-form {
+          width: 100% !important;
+          flex-wrap: wrap !important;
+          gap: 8px !important;
+        }
+
+        .mediahub-photo-search-input {
+          min-width: 0 !important;
+        }
+
+        .mediahub-photo-search-button {
+          width: 100% !important;
+          margin-left: 0 !important;
+        }
+
+        .mediahub-photo-grid-control {
+          display: none !important;
+        }
+
+        .mediahub-photo-layout {
+          flex-direction: column !important;
+          gap: 12px !important;
+        }
+
+        .mediahub-photo-results,
+        .mediahub-photo-settings {
+          width: 100% !important;
+          height: auto !important;
+        }
+
+        .mediahub-photo-results {
+          min-height: 320px !important;
+        }
+
+        .mediahub-photo-card-zone {
+          height: auto !important;
+          min-height: 300px !important;
+          max-height: 52vh !important;
+          padding: 10px !important;
+        }
+
+        .mediahub-photo-settings {
+          max-height: none !important;
+          overflow: visible !important;
+        }
+
+        #card-container {
+          grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
+          gap: 10px !important;
+          padding: 0 !important;
+        }
+
+        .photo-card > div:first-child,
+        #upload-section > div {
+          height: 160px !important;
+        }
+
+        #drop-zone {
+          min-height: 100% !important;
+        }
+      }
+
+      @media (max-width: 420px) {
+        #card-container {
+          grid-template-columns: 1fr !important;
+        }
+
+        .mediahub-photo-card-zone {
+          max-height: 48vh !important;
+        }
       }
     </style>
   `
