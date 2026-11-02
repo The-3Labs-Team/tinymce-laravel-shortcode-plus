@@ -292,8 +292,8 @@ function escapeHtml(str) {
 
 function getShortcodeAttr(shortcode, attrName, defaultValue) {
   if (defaultValue === undefined) defaultValue = null
-  const match = shortcode.match(new RegExp(attrName + '=["\']([^"\']*)["\']'))
-  return match ? decodeHtmlEntities(match[1]) : defaultValue
+  const match = shortcode.match(new RegExp(attrName + '=(?:"([^"]*)"|\'([^\']*)\')'))
+  return match ? decodeHtmlEntities(match[1] ?? match[2]) : defaultValue
 }
 
 function getShortcodeAttrs(shortcode, attrDefaults) {
@@ -734,10 +734,12 @@ function parseDisticoSingle(shortcode) {
 }
 
 function parseSpoilerSingle(shortcode) {
+  const title = getShortcodeAttr(shortcode, 'title', '')
   const textMatch = shortcode.match(/\[spoiler(?:\s+[^\]]+)?\](.*?)\[\/spoiler\]/s)
   const spoilerText = textMatch ? decodeHtmlEntities(textMatch[1].trim()) : ''
+  const titleHtml = title ? `<strong>${escapeHtml(title)}</strong> <br /> ` : ''
 
-  return `<small class="shortcode-preview" style="display:inline-block; border-radius: 8px; border: 1px solid #ffd07a; font-size: 14px; padding: 10px; width: calc(100% - 20px); max-width: 600px;">👁️ <br /> ${escapeHtml(spoilerText)}</small>`
+  return `<small class="shortcode-preview" style="display:inline-block; border-radius: 8px; border: 1px solid #ffd07a; font-size: 14px; padding: 10px; width: calc(100% - 20px); max-width: 600px;">👁️ <br /> ${titleHtml}${escapeHtml(spoilerText)}</small>`
 }
 
 function parseFaqSingle(shortcode) {

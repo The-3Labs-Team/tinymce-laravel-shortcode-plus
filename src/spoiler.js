@@ -1,16 +1,37 @@
 /* global tinymce */
 
 tinymce.PluginManager.add('spoiler', function (editor, url) {
+  const STYLE_ID = 'spoiler-dialog-styles'
+
+  /* Add space between the dialog fields */
+  const injectStyles = function () {
+    if (document.getElementById(STYLE_ID)) return
+    const style = document.createElement('style')
+    style.id = STYLE_ID
+    style.textContent = '.tox-dialog .tox-form__group + .tox-form__group { margin-top: 1rem; }'
+    document.head.appendChild(style)
+  }
+
+  const removeStyles = function () {
+    const el = document.getElementById(STYLE_ID)
+    if (el) el.remove()
+  }
+
   const openDialog = function (selectedShortcode) {
     const spoilerRegex = /\[spoiler(?:\s+[^\]]+)?\](.*?)\[\/spoiler\]/gs
     const initialData = {
+      title: '',
       spoiler: ''
     }
 
     if (selectedShortcode && spoilerRegex.test(selectedShortcode)) {
+      const titleMatch = selectedShortcode.match(/\[spoiler\s[^\]]*?title=(?:"([^"]*)"|'([^']*)')/)
       const spoilerMatch = selectedShortcode.match(/\[spoiler(?:\s+[^\]]+)?\](.*?)\[\/spoiler\]/s)
+      if (titleMatch) initialData.title = titleMatch[1] ?? titleMatch[2]
       if (spoilerMatch) initialData.spoiler = spoilerMatch[1]
     }
+
+    injectStyles()
 
     return editor.windowManager.open({
       title: 'Spoiler',
@@ -18,6 +39,13 @@ tinymce.PluginManager.add('spoiler', function (editor, url) {
       body: {
         type: 'panel',
         items: [
+          {
+            type: 'input',
+            inputMode: 'text',
+            name: 'title',
+            label: 'Title (optional)',
+            placeholder: 'Show hidden content'
+          },
           {
             type: 'textarea',
             name: 'spoiler',
@@ -38,10 +66,16 @@ tinymce.PluginManager.add('spoiler', function (editor, url) {
       ],
       onSubmit: function (api) {
         const data = api.getData()
+        /* Strip double quotes and square brackets from the title */
+        const title = String(data.title || '').replace(/"/g, '\'').replace(/[[\]]/g, '').trim()
+        const titleAttr = title ? ' title="' + title + '"' : ''
         /* Insert content when the window form is submitted */
-        editor.insertContent('[spoiler]' + data.spoiler + '[/spoiler]')
+        editor.insertContent('[spoiler' + titleAttr + ']' + data.spoiler + '[/spoiler]')
         editor.execCommand('showPreview')
         api.close()
+      },
+      onClose: function () {
+        removeStyles()
       }
     })
   }
