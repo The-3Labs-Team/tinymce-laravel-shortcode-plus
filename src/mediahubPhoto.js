@@ -16,6 +16,12 @@ tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
                 </button>
         </form>
 
+        <!--AI filter-->
+        <label class="mediahub-photo-ai-filter" style="display: flex; align-items: center; gap: 6px; margin-left: 30px; padding-left: 20px; border-left: 1px solid #d1d5db; font-size: 14px; color: #4b5563; cursor: pointer; white-space: nowrap;">
+            <input type="checkbox" id="hide-ai-generated" onchange="refreshImages()" style="accent-color: #4f46e5; width: 16px; height: 16px; margin: 0; cursor: pointer;">
+            Ignora generati AI
+        </label>
+
         <!--Slider-->
         <div class="mediahub-photo-grid-control" style="display: flex; align-items: center; margin-left: 30px; padding-left: 20px; border-left: 1px solid #d1d5db;">
             <label for="slider-dimensions" style="margin-right: 10px; font-size: 14px; color: #4b5563;">Grid size:</label>
@@ -258,6 +264,12 @@ tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
           display: none !important;
         }
 
+        .mediahub-photo-ai-filter {
+          margin-left: 0 !important;
+          padding-left: 0 !important;
+          border-left: none !important;
+        }
+
         .mediahub-photo-layout {
           flex-direction: column !important;
           gap: 12px !important;
@@ -402,7 +414,7 @@ tinymce.PluginManager.add('mediahubPhoto', function (editor, url) {
 async function lastImage (editor) {
   const container = document.querySelector('#card-container')
 
-  const results = await fetch('/nova-vendor/media-hub/media', {
+  const results = await fetch('/nova-vendor/media-hub/media?page=1' + aiFilterParam(), {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json'
@@ -451,6 +463,40 @@ function searchImages (query) {
     initUploadSection()
     initDragAndDrop()
   })
+}
+
+/**
+ * Query string flag that hides the AI-generated images, when the checkbox is on.
+ *
+ * @returns {string}
+ */
+function aiFilterParam () {
+  const checkbox = document.querySelector('#hide-ai-generated')
+
+  return checkbox && checkbox.checked ? '&hide_ai_generated=1' : ''
+}
+
+/**
+ * Reload the grid with the current search and the AI filter.
+ */
+// eslint-disable-next-line no-unused-vars
+async function refreshImages () {
+  const formQuery = document.querySelector('.tox-dialog__content-js form#query')
+  const container = document.querySelector('#card-container')
+  const query = new FormData(formQuery).get('query') || ''
+
+  if (query.length === 0) {
+    return lastImage()
+  }
+
+  container.innerHTML = 'Loading images...'
+  const cards = await searchInNova(query)
+
+  sliderDimensions(3)
+  printCards(cards, container)
+
+  initUploadSection()
+  initDragAndDrop()
 }
 
 function getCollections () {
@@ -539,7 +585,7 @@ function searchInNova (keyword) {
   // Fetch results from Nova API Global Search
   const results =
 
-    fetch('/nova-vendor/media-hub/media?page=1&search=' + keyword, {
+    fetch('/nova-vendor/media-hub/media?page=1&search=' + keyword + aiFilterParam(), {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
